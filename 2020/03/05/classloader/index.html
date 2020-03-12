@@ -21,29 +21,33 @@
     var CONFIG = {"hostname":"oldmanzhang.gitee.io","root":"/blogs/","scheme":"Gemini","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Older u r, funnier u r">
-<meta property="og:type" content="website">
-<meta property="og:title" content="老而弥坚工作室">
-<meta property="og:url" content="https://oldmanzhang.gitee.io/blogs/index.html">
+  <meta name="description" content="java classloader 作用的讲解">
+<meta property="og:type" content="article">
+<meta property="og:title" content="classloader">
+<meta property="og:url" content="https://oldmanzhang.gitee.io/blogs/2020/03/05/classloader/index.html">
 <meta property="og:site_name" content="老而弥坚工作室">
-<meta property="og:description" content="Older u r, funnier u r">
+<meta property="og:description" content="java classloader 作用的讲解">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-03-05T04:07:51.000Z">
+<meta property="article:modified_time" content="2020-03-10T15:24:18.066Z">
 <meta property="article:author" content="Oldman Zhang">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="classloader">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://oldmanzhang.gitee.io/blogs/">
+<link rel="canonical" href="https://oldmanzhang.gitee.io/blogs/2020/03/05/classloader/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false
+    isHome : false,
+    isPost : true
   };
 </script>
 
-  <title>老而弥坚工作室</title>
+  <title>classloader | 老而弥坚工作室</title>
   
 
 
@@ -181,94 +185,10 @@
             
 
   <div class="posts-expand">
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://oldmanzhang.gitee.io/blogs/2020/03/06/access_modifier/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/blogs/upload/head.jpg">
-      <meta itemprop="name" content="Oldman Zhang">
-      <meta itemprop="description" content="Older u r, funnier u r">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="老而弥坚工作室">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/blogs/2020/03/06/access_modifier/" class="post-title-link" itemprop="url">access modifier</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-03-06 10:18:10" itemprop="dateCreated datePublished" datetime="2020-03-06T10:18:10+08:00">2020-03-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-10 23:20:29" itemprop="dateModified" datetime="2020-03-10T23:20:29+08:00">2020-03-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/blogs/categories/coding/" itemprop="url" rel="index"><span itemprop="name">coding</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
       
-        <div class="post-gallery" itemscope itemtype="http://schema.org/ImageGallery">
-            <img src="http://bruce.u.qiniudn.com/2013/11/27/reading/photos-0.jpg" itemprop="contentUrl">
-        </div>
-          <p>java 访问限制</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/blogs/2020/03/06/access_modifier/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
   
   
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="en">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
     <link itemprop="mainEntityOfPage" href="https://oldmanzhang.gitee.io/blogs/2020/03/05/classloader/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -282,8 +202,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/blogs/2020/03/05/classloader/" class="post-title-link" itemprop="url">classloader</a>
+          classloader
         </h1>
 
         <div class="post-meta">
@@ -304,78 +223,13 @@
               </span>
 
           
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>java classloader 作用的讲解</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/blogs/2020/03/05/classloader/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://oldmanzhang.gitee.io/blogs/2020/03/05/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/blogs/upload/head.jpg">
-      <meta itemprop="name" content="Oldman Zhang">
-      <meta itemprop="description" content="Older u r, funnier u r">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="老而弥坚工作室">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/blogs/2020/03/05/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
               <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
+                <i class="fa fa-eye"></i>
               </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-03-05 12:00:32" itemprop="dateCreated datePublished" datetime="2020-03-05T12:00:32+08:00">2020-03-05</time>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-10 23:24:34" itemprop="dateModified" datetime="2020-03-10T23:24:34+08:00">2020-03-10</time>
-              </span>
-
-          
 
         </div>
       </header>
@@ -386,33 +240,166 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>hexo hello world</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/blogs/2020/03/05/hello-world/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
+        <p>java classloader 作用的讲解</p>
+<a id="more"></a>
+
+<h1 id="classloader"><a href="#classloader" class="headerlink" title="classloader"></a>classloader</h1><h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><p><code>classloader</code>加载<strong>某种文件</strong>成 <code>class对象</code> 到 JVM 中。</p>
+<p>例如：</p>
+<ul>
+<li>正常 Jar 中二进制 <code>class</code> 对应 正常 Hotspot 默认的 classloader</li>
+<li>网络文件 对应 Network classloader</li>
+<li>tomcat war 对应 tomcatWeb classloader</li>
+<li>你丫足够厉害，可以把 C python 编译成 <code>class</code> 文件；或者新建一个 CorPythonClassLoader 去解析 C python文件，那么 C 和 python 文件都是可以在 JVM 中运行的</li>
+</ul>
+<h3 id="默认的-classloader"><a href="#默认的-classloader" class="headerlink" title="默认的 classloader"></a>默认的 classloader</h3><ul>
+<li><code>Bootstrap cl</code><ul>
+<li>parent cl : null</li>
+<li>load path : JAVA_HOME，rt.jar。比如，java.lang.String等</li>
+</ul>
+</li>
+<li><code>Extension cl</code><ul>
+<li>parent cl : <code>Bootstrap cl</code></li>
+<li>load path : JAVA_HOME/ext 就是 javax jar。比如，swing等</li>
+</ul>
+</li>
+<li><code>Application cl</code><ul>
+<li>parent cl : <code>Extension cl</code></li>
+<li>load path : . , 项目的文件</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>重点：</p>
+<p>所以 cl 之间最大的不同就 load机制，里面就包含了<strong>路径</strong>和<strong>方式</strong></p>
+<p>每个 <code>class</code> 都有自己的 cl</p>
+<p>决定class唯一的方式是 <code>class</code> 类全名和用于加载的cl</p>
+</blockquote>
+<h3 id="加载时间"><a href="#加载时间" class="headerlink" title="加载时间"></a>加载时间</h3><ul>
+<li>预加载，比如 <code>Bootstrap cl</code> 的加载就是预加载</li>
+<li>延迟加载，使用时候才进行加载，大部分是 <code>Extension cl</code> 和 <code>Application cl</code></li>
+</ul>
+<h3 id="加载class机制"><a href="#加载class机制" class="headerlink" title="加载class机制"></a>加载class机制</h3><ol>
+<li>需求：从A程序的调用方，请求调用某个B class或者资源</li>
+<li>步骤：<ol>
+<li>从A的cl中，尝试去load B class</li>
+<li>thisCl.loadClass<ol>
+<li>thisCl.findLoadedClass，尝试在本cl的缓冲中查找是否已经加载<ol>
+<li>是，返回</li>
+<li>否，super.loadClass</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>否，thisCl.findClass，由本cl定义的路径和方式去加载class</li>
+<li>thisCl.defineClass，从二进制数据中还原一个class</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>资源文件，都是以这种方式来进行加载的。</p>
+</blockquote>
+<h3 id="parent-delegate-（别说-“双亲委派”，是“父辈委派”）"><a href="#parent-delegate-（别说-“双亲委派”，是“父辈委派”）" class="headerlink" title="parent delegate （别说 “双亲委派”，是“父辈委派”）"></a>parent delegate （别说 “双亲委派”，是“父辈委派”）</h3><p>就是上面说的加载class机制，这个是一个递归机制来的，递归的最后判断节点是 parentCl = null。</p>
+<ol>
+<li>先找 this cl 缓存</li>
+<li>委托阶段<ol>
+<li>再委托 parent cl 帮忙找<ol>
+<li>parent cl 同样从第一步开始找</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>在 parent cl 机制返回找不到的时候，this cl 才尝试用自己的方式去查找</li>
+</ol>
+<p>举例：比如要找一个 java.lang.System 的类：</p>
+<ol>
+<li><code>Application cl</code> 找自身缓存，没有，委托给<code>Extension cl</code></li>
+<li><code>Extension cl</code> 找自身缓存，没有，委托给<code>Bootstrap cl</code></li>
+<li><code>Bootstrap cl</code> 找自身缓存，有，一路返回回去</li>
+<li><code>Application cl</code>，收到，就可以返回给调用方</li>
+</ol>
+<p>举例：比如要找一个 <code>com.robin.Abc</code> 的类：</p>
+<ol>
+<li><code>Application cl</code> 找自身缓存，没有，委托给<code>Extension cl</code></li>
+<li><code>Extension cl</code> 找自身缓存，没有，委托给<code>Bootstrap cl</code></li>
+<li><code>Bootstrap cl</code> 找自身缓存，没有，</li>
+<li><code>Bootstrap cl</code> 在自己的路径去找，没有，返回给<code>Extension cl</code></li>
+<li><code>Extension cl</code> 在自己的路径去找，没有，返回给<code>Application cl</code></li>
+<li><code>Application cl</code> 在自己的路径去找，有，就返回给调用程序</li>
+<li><code>Application cl</code> 在自己的路径去找，没有，<code>ClassNotFoundException</code></li>
+</ol>
+<h4 id="好处"><a href="#好处" class="headerlink" title="好处"></a>好处</h4><ul>
+<li>不用给别人乱改核心的代码。比如，无法改写 String 等代码，因为 <ul>
+<li>决定 <code>class</code> 唯一的方式是 <code>class</code> 类全名和加载的cl。</li>
+<li><code>parent delegate</code> 存在，改了也是无法加载<ul>
+<li>新建 String，使用 <code>Application cl</code> 都是绕回到 <code>Bootstrap cl</code> 进行判断加载的</li>
+<li>新建 String，新建 <code>customized cl</code>。因为加载顺序，导致 java.lang.String 也同样是由 <code>Bootstrap cl</code> 检查是否已经加载好，之后才轮到 <code>customized cl</code> 进行判断加载</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>如果想加载同名类，需要创建两个不同的cl对象，且同级，绕过 <code>parent delegate</code> 的机制</p>
+</blockquote>
+<h3 id="客户化cl步骤"><a href="#客户化cl步骤" class="headerlink" title="客户化cl步骤"></a>客户化cl步骤</h3><ol>
+<li>创建 urlClassLoader 对象。适用场景：是class位置路径的不同，依然是正规的class文件，就可以使用这种方式</li>
+<li>继承 classloader，有自己的完整的加载class机制<ol>
+<li>修改 findClass 方法</li>
+</ol>
+</li>
+<li><strong>不要</strong>去改 loadClass 方法，不要去改<code>parent delegate</code>机制</li>
+</ol>
+<h4 id="从本地路径-网络加载"><a href="#从本地路径-网络加载" class="headerlink" title="从本地路径/网络加载"></a>从本地路径/网络加载</h4><ol>
+<li>继承classloader，重写findClass 找 <code>class</code> 路径</li>
+<li>加载后，反射调用</li>
+</ol>
+<h4 id="加载同名文件"><a href="#加载同名文件" class="headerlink" title="加载同名文件"></a>加载同名文件</h4><ol>
+<li>创建两个不同的UrlClassLoader对象，重写findClass 找 <code>class</code> 路径</li>
+<li>分别加载后，反射调用</li>
+</ol>
+<h4 id="加密解密"><a href="#加密解密" class="headerlink" title="加密解密"></a>加密解密</h4><ol>
+<li>继承classloader，重写findClass 找 <code>class</code> 路径，同时读取二进制的时候，进行解密<ol>
+<li>之前生成的二进制文件的时候，记得要加密先</li>
+</ol>
+</li>
+<li>加载后，反射调用</li>
+</ol>
+
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
+          
+          <div class="post-tags">
+              <a href="/blogs/tags/java/" rel="tag"><i class="fa fa-tag"></i> java</a>
+              <a href="/blogs/tags/classloader/" rel="tag"><i class="fa fa-tag"></i> classloader</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blogs/2020/03/05/hello-world/" rel="prev" title="Hello World">
+      <i class="fa fa-chevron-left"></i> Hello World
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blogs/2020/03/06/access_modifier/" rel="next" title="access modifier">
+      access modifier <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
       </footer>
+    
   </article>
   
   
   
 
   </div>
-
-  
-
 
 
           </div>
@@ -463,6 +450,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#classloader"><span class="nav-number">1.</span> <span class="nav-text">classloader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#作用"><span class="nav-number">1.0.1.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#默认的-classloader"><span class="nav-number">1.0.2.</span> <span class="nav-text">默认的 classloader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加载时间"><span class="nav-number">1.0.3.</span> <span class="nav-text">加载时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加载class机制"><span class="nav-number">1.0.4.</span> <span class="nav-text">加载class机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#parent-delegate-（别说-“双亲委派”，是“父辈委派”）"><span class="nav-number">1.0.5.</span> <span class="nav-text">parent delegate （别说 “双亲委派”，是“父辈委派”）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#好处"><span class="nav-number">1.0.5.1.</span> <span class="nav-text">好处</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户化cl步骤"><span class="nav-number">1.0.6.</span> <span class="nav-text">客户化cl步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#从本地路径-网络加载"><span class="nav-number">1.0.6.1.</span> <span class="nav-text">从本地路径&#x2F;网络加载</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#加载同名文件"><span class="nav-number">1.0.6.2.</span> <span class="nav-text">加载同名文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#加密解密"><span class="nav-number">1.0.6.3.</span> <span class="nav-text">加密解密</span></a></li></ol></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

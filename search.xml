@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>access modifier</title>
+    <url>/blogs/2020/03/06/access_modifier/</url>
+    <content><![CDATA[<p>java 访问限制</p>
+<a id="more"></a>
+<h1 id="访问限制"><a href="#访问限制" class="headerlink" title="访问限制"></a>访问限制</h1><h2 id="对类成员"><a href="#对类成员" class="headerlink" title="对类成员"></a>对类成员</h2><table>
+<thead>
+<tr>
+<th>name</th>
+<th>own class</th>
+<th>subClass same package</th>
+<th>class same package</th>
+<th>subClass another package</th>
+<th>class another package</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>private</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>package</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>protected</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>public</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<h2 id="类级别"><a href="#类级别" class="headerlink" title="类级别"></a>类级别</h2><p>只有 package 和 public 的修饰 class。 如果不是，就是 private 或者 protected 内部类</p>
+<h2 id="对-Protected-的理解"><a href="#对-Protected-的理解" class="headerlink" title="对 Protected 的理解"></a>对 Protected 的理解</h2><ol>
+<li>设计： 保证子类可以进行一定的客户化，比如在 object.clone 或者 一些模板方法里面的 protected 方法，允许子类进行客户化</li>
+<li>判断： protected 是否可以用，主要是看这个元素是【来自哪里】，同时判断【当前的调用地方】</li>
+<li>判断： 比如 clone 是来自 Object类的，那么根据多态，如果父类的引用调用override的方法，虽然子类有实现，但是都是看父类的方法的来源。因为只有父类可以调用成功了，多态的子类才可以调用成功。</li>
+</ol>
+<h2 id="感悟"><a href="#感悟" class="headerlink" title="感悟"></a>感悟</h2><ol>
+<li>访问权限，可以限制调用方不需去了解过多的细节，他不会去触碰到一些影响逻辑的东西</li>
+<li>访问权限，可以为了你升级的时候，非常的大胆，因为不会是客户使用到的</li>
+</ol>
+]]></content>
+      <categories>
+        <category>coding</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>classloader</title>
+    <url>/blogs/2020/03/05/classloader/</url>
+    <content><![CDATA[<p>java classloader 作用的讲解</p>
+<a id="more"></a>
+
+<h1 id="classloader"><a href="#classloader" class="headerlink" title="classloader"></a>classloader</h1><h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><p><code>classloader</code>加载<strong>某种文件</strong>成 <code>class对象</code> 到 JVM 中。</p>
+<p>例如：</p>
+<ul>
+<li>正常 Jar 中二进制 <code>class</code> 对应 正常 Hotspot 默认的 classloader</li>
+<li>网络文件 对应 Network classloader</li>
+<li>tomcat war 对应 tomcatWeb classloader</li>
+<li>你丫足够厉害，可以把 C python 编译成 <code>class</code> 文件；或者新建一个 CorPythonClassLoader 去解析 C python文件，那么 C 和 python 文件都是可以在 JVM 中运行的</li>
+</ul>
+<h3 id="默认的-classloader"><a href="#默认的-classloader" class="headerlink" title="默认的 classloader"></a>默认的 classloader</h3><ul>
+<li><code>Bootstrap cl</code><ul>
+<li>parent cl : null</li>
+<li>load path : JAVA_HOME，rt.jar。比如，java.lang.String等</li>
+</ul>
+</li>
+<li><code>Extension cl</code><ul>
+<li>parent cl : <code>Bootstrap cl</code></li>
+<li>load path : JAVA_HOME/ext 就是 javax jar。比如，swing等</li>
+</ul>
+</li>
+<li><code>Application cl</code><ul>
+<li>parent cl : <code>Extension cl</code></li>
+<li>load path : . , 项目的文件</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>重点：</p>
+<p>所以 cl 之间最大的不同就 load机制，里面就包含了<strong>路径</strong>和<strong>方式</strong></p>
+<p>每个 <code>class</code> 都有自己的 cl</p>
+<p>决定class唯一的方式是 <code>class</code> 类全名和用于加载的cl</p>
+</blockquote>
+<h3 id="加载时间"><a href="#加载时间" class="headerlink" title="加载时间"></a>加载时间</h3><ul>
+<li>预加载，比如 <code>Bootstrap cl</code> 的加载就是预加载</li>
+<li>延迟加载，使用时候才进行加载，大部分是 <code>Extension cl</code> 和 <code>Application cl</code></li>
+</ul>
+<h3 id="加载class机制"><a href="#加载class机制" class="headerlink" title="加载class机制"></a>加载class机制</h3><ol>
+<li>需求：从A程序的调用方，请求调用某个B class或者资源</li>
+<li>步骤：<ol>
+<li>从A的cl中，尝试去load B class</li>
+<li>thisCl.loadClass<ol>
+<li>thisCl.findLoadedClass，尝试在本cl的缓冲中查找是否已经加载<ol>
+<li>是，返回</li>
+<li>否，super.loadClass</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>否，thisCl.findClass，由本cl定义的路径和方式去加载class</li>
+<li>thisCl.defineClass，从二进制数据中还原一个class</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>资源文件，都是以这种方式来进行加载的。</p>
+</blockquote>
+<h3 id="parent-delegate-（别说-“双亲委派”，是“父辈委派”）"><a href="#parent-delegate-（别说-“双亲委派”，是“父辈委派”）" class="headerlink" title="parent delegate （别说 “双亲委派”，是“父辈委派”）"></a>parent delegate （别说 “双亲委派”，是“父辈委派”）</h3><p>就是上面说的加载class机制，这个是一个递归机制来的，递归的最后判断节点是 parentCl = null。</p>
+<ol>
+<li>先找 this cl 缓存</li>
+<li>委托阶段<ol>
+<li>再委托 parent cl 帮忙找<ol>
+<li>parent cl 同样从第一步开始找</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>在 parent cl 机制返回找不到的时候，this cl 才尝试用自己的方式去查找</li>
+</ol>
+<p>举例：比如要找一个 java.lang.System 的类：</p>
+<ol>
+<li><code>Application cl</code> 找自身缓存，没有，委托给<code>Extension cl</code></li>
+<li><code>Extension cl</code> 找自身缓存，没有，委托给<code>Bootstrap cl</code></li>
+<li><code>Bootstrap cl</code> 找自身缓存，有，一路返回回去</li>
+<li><code>Application cl</code>，收到，就可以返回给调用方</li>
+</ol>
+<p>举例：比如要找一个 <code>com.robin.Abc</code> 的类：</p>
+<ol>
+<li><code>Application cl</code> 找自身缓存，没有，委托给<code>Extension cl</code></li>
+<li><code>Extension cl</code> 找自身缓存，没有，委托给<code>Bootstrap cl</code></li>
+<li><code>Bootstrap cl</code> 找自身缓存，没有，</li>
+<li><code>Bootstrap cl</code> 在自己的路径去找，没有，返回给<code>Extension cl</code></li>
+<li><code>Extension cl</code> 在自己的路径去找，没有，返回给<code>Application cl</code></li>
+<li><code>Application cl</code> 在自己的路径去找，有，就返回给调用程序</li>
+<li><code>Application cl</code> 在自己的路径去找，没有，<code>ClassNotFoundException</code></li>
+</ol>
+<h4 id="好处"><a href="#好处" class="headerlink" title="好处"></a>好处</h4><ul>
+<li>不用给别人乱改核心的代码。比如，无法改写 String 等代码，因为 <ul>
+<li>决定 <code>class</code> 唯一的方式是 <code>class</code> 类全名和加载的cl。</li>
+<li><code>parent delegate</code> 存在，改了也是无法加载<ul>
+<li>新建 String，使用 <code>Application cl</code> 都是绕回到 <code>Bootstrap cl</code> 进行判断加载的</li>
+<li>新建 String，新建 <code>customized cl</code>。因为加载顺序，导致 java.lang.String 也同样是由 <code>Bootstrap cl</code> 检查是否已经加载好，之后才轮到 <code>customized cl</code> 进行判断加载</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>如果想加载同名类，需要创建两个不同的cl对象，且同级，绕过 <code>parent delegate</code> 的机制</p>
+</blockquote>
+<h3 id="客户化cl步骤"><a href="#客户化cl步骤" class="headerlink" title="客户化cl步骤"></a>客户化cl步骤</h3><ol>
+<li>创建 urlClassLoader 对象。适用场景：是class位置路径的不同，依然是正规的class文件，就可以使用这种方式</li>
+<li>继承 classloader，有自己的完整的加载class机制<ol>
+<li>修改 findClass 方法</li>
+</ol>
+</li>
+<li><strong>不要</strong>去改 loadClass 方法，不要去改<code>parent delegate</code>机制</li>
+</ol>
+<h4 id="从本地路径-网络加载"><a href="#从本地路径-网络加载" class="headerlink" title="从本地路径/网络加载"></a>从本地路径/网络加载</h4><ol>
+<li>继承classloader，重写findClass 找 <code>class</code> 路径</li>
+<li>加载后，反射调用</li>
+</ol>
+<h4 id="加载同名文件"><a href="#加载同名文件" class="headerlink" title="加载同名文件"></a>加载同名文件</h4><ol>
+<li>创建两个不同的UrlClassLoader对象，重写findClass 找 <code>class</code> 路径</li>
+<li>分别加载后，反射调用</li>
+</ol>
+<h4 id="加密解密"><a href="#加密解密" class="headerlink" title="加密解密"></a>加密解密</h4><ol>
+<li>继承classloader，重写findClass 找 <code>class</code> 路径，同时读取二进制的时候，进行解密<ol>
+<li>之前生成的二进制文件的时候，记得要加密先</li>
+</ol>
+</li>
+<li>加载后，反射调用</li>
+</ol>
+]]></content>
+      <tags>
+        <tag>java</tag>
+        <tag>classloader</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/blogs/2020/03/05/hello-world/</url>
+    <content><![CDATA[<p>hexo hello world</p>
+<a id="more"></a>
+
+<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+]]></content>
+  </entry>
+</search>
