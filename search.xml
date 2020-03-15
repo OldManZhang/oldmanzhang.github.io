@@ -2,7 +2,7 @@
 <search>
   <entry>
     <title>access modifier</title>
-    <url>/blogs/2020/03/06/access_modifier/</url>
+    <url>/2020/03/06/access_modifier/</url>
     <content><![CDATA[<p>java 访问限制</p>
 <a id="more"></a>
 <h1 id="访问限制"><a href="#访问限制" class="headerlink" title="访问限制"></a>访问限制</h1><h2 id="对类成员"><a href="#对类成员" class="headerlink" title="对类成员"></a>对类成员</h2><table>
@@ -69,7 +69,7 @@
   </entry>
   <entry>
     <title>classloader</title>
-    <url>/blogs/2020/03/05/classloader/</url>
+    <url>/2020/03/05/classloader/</url>
     <content><![CDATA[<p>java classloader 作用的讲解</p>
 <a id="more"></a>
 
@@ -202,7 +202,7 @@
   </entry>
   <entry>
     <title>Hello World</title>
-    <url>/blogs/2020/03/05/hello-world/</url>
+    <url>/2020/03/05/hello-world/</url>
     <content><![CDATA[<p>hexo hello world</p>
 <a id="more"></a>
 
