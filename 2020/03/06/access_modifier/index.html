@@ -361,11 +361,24 @@
 
           </div>
           
-    
+      <div class="tabs tabs-comment">
+        <ul class="nav-tabs">
+            <li class="tab"><a href="#comment-changyan">changyan</a></li>
+            <li class="tab"><a href="#comment-gitalk">gitalk</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane changyan" id="comment-changyan">
+              
   <div class="comments">
     <div id="SOHUCS"></div>
   </div>
   
+            </div>
+            <div class="tab-pane gitalk" id="comment-gitalk">
+              <div class="comments" id="gitalk-container"></div>
+            </div>
+        </div>
+      </div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -574,6 +587,26 @@
   });
   </script>
   <script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js"></script>
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'e566c5ae2e8bf7e1eb21',
+      clientSecret: 'b2a6dfd52d32fe5ba0678c050ebb3e0b82b9624f',
+      repo        : 'gitalkComment',
+      owner       : 'OldManZhang',
+      admin       : ['OldManZhang'],
+      id          : '4dc3049b5e3ee46d66b72af266cd97fe',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
 
 </body>
 </html>
