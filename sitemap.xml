@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://oldmanzhang.gitee.io/blogs/2020/03/06/access_modifier/</loc>
+    
+    <lastmod>2020-09-06T01:58:44.581Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://oldmanzhang.gitee.io/blogs/2020/03/05/classloader/</loc>
     
     <lastmod>2020-09-06T00:57:41.501Z</lastmod>
@@ -33,13 +40,6 @@
     <loc>https://oldmanzhang.gitee.io/blogs/tags/index.html</loc>
     
     <lastmod>2020-09-06T00:57:41.501Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://oldmanzhang.gitee.io/blogs/2020/03/06/access_modifier/</loc>
-    
-    <lastmod>2020-09-06T00:57:41.491Z</lastmod>
     
   </url>
   
