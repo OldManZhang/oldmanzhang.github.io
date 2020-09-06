@@ -1,9 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>心一狠，定个目标</title>
+    <url>/2020/09/06/new-flag/</url>
+    <content><![CDATA[<p><img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1599371949911&di=a43cab7f6fa1870c7bf9f5c4a1f657d2&imgtype=0&src=http%3A%2F%2Fw.ixinwei.com%2Fjs201811%2F587.jpg" alt=""><br>来啊，你来啊</p>
+<a id="more"></a>
+
+<h1 id="心一狠，定个目标"><a href="#心一狠，定个目标" class="headerlink" title="心一狠，定个目标"></a>心一狠，定个目标</h1><h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><ul>
+<li>给自己一点目标感，给忙碌的自己找点方向</li>
+<li>合理规划一下自己，向小猪学习，做个时间管理大师</li>
+<li>无论从健康和个人知识架构方面进行成长</li>
+<li>做点自己喜欢的事情</li>
+<li>知识就像海绵一样，有时需要放空，吸收更加多的水分</li>
+</ul>
+<h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><ul>
+<li>学会自由泳，1km，随便游</li>
+<li>技术方面<ul>
+<li>前端 – 2个月</li>
+<li>Spring源码阅读和手写源码 – 3个月</li>
+<li>Java 各个细节的源码理解 – 3个月</li>
+<li>Linux 运维和 操作系统的学习 – 2个月</li>
+<li>SQLLite 源码阅读 – 2个月</li>
+<li>BigTable等大数据的基础知识 – 2个月</li>
+<li>分布式的基础知识 – 2个月</li>
+<li>树莓派等，IOT 知识的学习 – 未知</li>
+</ul>
+</li>
+<li>考证<ul>
+<li>ALIYUN ACE 证书</li>
+<li>AWS 证书</li>
+</ul>
+</li>
+</ul>
+<h2 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h2><ul>
+<li>每次都只专注于一个目标</li>
+<li>保持耐心，不是看完书，就是学到知识；知识一定要经过可检索、可重构，成果的输出，才算是真正的掌握</li>
+</ul>
+]]></content>
+      <categories>
+        <category>writing</category>
+      </categories>
+      <tags>
+        <tag>writing</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2020/09/06/hello-world/</url>
-    <content><![CDATA[<p><img src="http://bruce.u.qiniudn.com/2013/11/27/reading/photos-0.jpg" alt=""><br>hexo hello world</p>
+    <content><![CDATA[<p>hexo hello world</p>
 <a id="more"></a>
 
 <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
