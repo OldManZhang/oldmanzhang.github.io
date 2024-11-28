@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>seq2seq 手工实现及原理分析</title>
+    <url>/2024/08/13/%5B%E5%AD%A6%E8%82%A5AI%5D%20seq2seq%20%E6%89%8B%E5%B7%A5%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>现实中，有一类问题是 <strong>输入输出不定长</strong> 的，比如</p>
+<ol>
+<li>翻译，从中文到英文</li>
+<li>文生图，一段话生成一个图片</li>
+<li>摘要，总结一段话的信息</li>
+</ol>
+<p>所以 <code>seq2seq</code> 就是为了解决这种 一串序列 生成 另外一串序列 问题的模型。</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p><code>seq2seq</code>，<code>sequence to sequence</code>，也有另外一种叫法 <code>encoder and decoder</code>。他是一种上层模型架构，即是组合模型，他可以由不同的底层模型来实现。</p>
+<p>我们可以先看原理图。<br><em>原理图</em><br><img src="https://qiniu.oldzhangtech.com/mdpic/65e94f22-668b-4d3f-accc-57617096e7d4_cd0a100f-9d6f-44db-86c6-5061e8e974ae.jpeg"><br>从原理图中可以知道，<code>seq2seq </code>模型 有以下的特征：</p>
+<ol>
+<li>模型都会有一个 <code>Encoder</code> ，一个 <code>Decoder</code>，和一个 <code>Context</code></li>
+<li><code>Encoder</code> 就是字面意思的 – 编码器，<code>src_input</code> 经过<code>Encoder</code> 处理，输出 <code>Context</code> 中</li>
+<li>同理，<code>Decoder</code> 就是解码器，<code>tgt_input</code> 和 <code>Context</code> 经过 <code>Decoder</code> 处理, 输出 <code>tgt_output</code></li>
+<li><code>Encoder</code> 和 <code>Decoder</code> 都必须能够识别 <code>Context</code><blockquote>
+<p>src： source， tgt： target</p>
+</blockquote>
+</li>
+</ol>
+<p>🔥 <code>Context</code> 的组成是非常重要的，他是 <code>Encoder</code> 和 <code>Decoder</code> 是能够识别的一个介质，是链接两者的桥梁。这种介质可以是 _隐状态_，可以是 _注意力的加权计算值_，等等，这些都由底层的模型来决定的。</p>
+<p>就好比国际贸易中，我们想买澳大利亚铁矿。 美元是硬通货，中间介质，ZG 和 土澳 都认美元，所以 ZG encoder 先把 RMB 转成 Dollar，给到土澳 decoder，土澳再换回自己的 澳元。</p>
+<p>🔥 <strong>不定长</strong>，输入值（比如，长度是 8）在 <code>Encoder</code> 都转换成统一的 <code>Context</code>（比如，128 X 512 的 2 层神经网络），同时 输出值的长度（比如，长度是 10 ） 由 <code>Decoder</code> 和 <code>Context</code>  来决定，已经与输入值无关了。</p>
+<p>同时，<code>seq2seq</code> 仅仅是上层架构，底层实现的模型是啥都可以视情况而定。比如，底层可以是 <code>RNN</code>，可以是 <code>LSTM</code>，也可以是 <code>GRU</code>， 也可以是 <code>Transformer</code>。本文例子中使用 <code>RNN</code> 来实现。</p>
+<h2 id="例子-–-翻译"><a href="#例子-–-翻译" class="headerlink" title="例子 – 翻译"></a>例子 – 翻译</h2><blockquote>
+<p>下面是手工实现一个基于 <code>RNN</code> 的 <code>seq2seq</code> 模型。可运行的 ipynb 文件的<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/seq2seq.ipynb">链接</a>。</p>
+</blockquote>
+<h3 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h3><p>例子的目标，从有限的翻译资料中，训练出翻译的逻辑，实现从英文翻译成法文。</p>
+<h3 id="分析任务"><a href="#分析任务" class="headerlink" title="分析任务"></a>分析任务</h3><blockquote>
+<p>这里先不讨论字符的处理流程（清洗字符，过滤特殊字符等），所有的流程简单化，仅仅是验证模型的使用。</p>
+</blockquote>
+<ol>
+<li>翻译是一个“分类”任务</li>
+<li>这个是一个不定长的输入和输出的，所以使用 <code>seq2seq</code> 的模型</li>
+<li>同时输入和输出是有时间序列的，所以底层模型使用带有记忆能力的模型，我们使用 <code>RNN</code></li>
+</ol>
+<p>❓ 为什么是一份分类的任务？<br>这其实是 <code>word2index</code> 的过程，每个 <code>word</code> 就是一个分类。举例：比如 输入的是英文，英文中的一共有 4000 个单词，那么输入的分类就是 4000 ；输出的是法文，法文中的一共有 2000 个单词，那么输出的分类就是 2000。</p>
+<h3 id="代码结构"><a href="#代码结构" class="headerlink" title="代码结构"></a>代码结构</h3><p><img src="https://qiniu.oldzhangtech.com/mdpic/efa06cc1-1371-4e15-a0fd-0e5505739279_54099b97-f43c-47fc-ab0a-7f855bc6ad50.jpeg"><br>上图是 数据在 seq2seq 流动中串起不同组件的过程。</p>
+<p><em>组件说明：</em>   </p>
+<ol>
+<li><code>word_index</code>，就是把单词转换成 <code>index</code></li>
+<li><code>embedding</code>，就要把离散的 <code>index</code> 转换成可以计算的连续的 <code>embedding</code>，适合模型的计算</li>
+<li><code>word_index</code> 和 <code>embedding</code> 正常情况是 输入和输出都不能共用的</li>
+<li><code>encoder</code> 里面有 <code>embedding</code>，<code>rnn</code><ol>
+<li><code>rnn</code> 输入 <code>src</code>， 输出 <code>hidden</code> 隐状态，即 <code>Context</code></li>
+</ol>
+</li>
+<li><code>decoder</code> 里面有 <code>embedding</code>，<code>rnn</code>，<code>full_connect</code><ol>
+<li><code>rnn </code><strong>循环</strong>叠加输入 <code>tgt_input</code> 和 <code>Context</code>， 输出 <code>new hidden</code>,  <code>tgt_output</code></li>
+<li><code>full_connect</code> 负责把 <code>tgt_output</code> 生成真正的 <code>real_tgt_ouput</code><blockquote>
+<p>了解他们的具体职责后再去看他们的代码就清晰多了</p>
+</blockquote>
+</li>
+</ol>
+</li>
+</ol>
+<p><em>代码片段分析</em>  </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Define the Encoder RNN</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">EncoderRNN</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, input_size, hidden_size</span>):</span><br><span class="line">        <span class="built_in">super</span>(EncoderRNN, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.hidden_size = hidden_size</span><br><span class="line">        <span class="variable language_">self</span>.embedding = nn.Embedding(input_size, hidden_size)</span><br><span class="line">        <span class="variable language_">self</span>.rnn = nn.RNN(hidden_size, hidden_size, batch_first=<span class="literal">True</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, input_seq, hidden</span>):</span><br><span class="line">        <span class="comment"># 内部进行 embedding</span></span><br><span class="line">        <span class="comment"># 传入的是 input_indices</span></span><br><span class="line">        embedded = <span class="variable language_">self</span>.embedding(input_seq)</span><br><span class="line">        output, hidden = <span class="variable language_">self</span>.rnn(embedded, hidden)</span><br><span class="line">        <span class="keyword">return</span> output, hidden</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">init_hidden</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> torch.zeros(<span class="number">1</span>, <span class="number">1</span>, <span class="variable language_">self</span>.hidden_size)</span><br></pre></td></tr></table></figure>
+<p>上面是 <code>encoder</code> 的代码，作用就是：</p>
+<ol>
+<li><code>src_input</code> 转成 <code>embedding</code></li>
+<li><code>rnn</code> 把 <code>embedding</code> 转成 <code>hidden</code>，即 <code>Context</code></li>
+</ol>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Define the Decoder RNN</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DecoderRNN</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, hidden_size, output_size</span>):</span><br><span class="line">        <span class="built_in">super</span>(DecoderRNN, ).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.hidden_size = hidden_size</span><br><span class="line">        <span class="variable language_">self</span>.embedding = nn.Embedding(output_size, hidden_size)</span><br><span class="line">        <span class="variable language_">self</span>.rnn = nn.RNN(hidden_size, hidden_size, batch_first=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.out = nn.Linear(hidden_size, output_size)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, input_seq, hidden</span>):</span><br><span class="line">        <span class="comment"># 内部进行 embedding</span></span><br><span class="line">        <span class="comment"># 传入的是 input_indices</span></span><br><span class="line">        embedded = <span class="variable language_">self</span>.embedding(input_seq)</span><br><span class="line">        output, hidden = <span class="variable language_">self</span>.rnn(embedded, hidden)</span><br><span class="line">        <span class="comment"># 就是 全链接层 从 hidden -》 output_feature</span></span><br><span class="line">        output = <span class="variable language_">self</span>.out(output.squeeze(<span class="number">1</span>))</span><br><span class="line">        <span class="keyword">return</span> output, hidden</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">init_hidden</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> torch.zeros(<span class="number">1</span>, <span class="number">1</span>, <span class="variable language_">self</span>.hidden_size)</span><br></pre></td></tr></table></figure>
+<p>上面是 <code>dncoder</code> 的代码，与 <code>encoder </code>比较多了一个 <code>full connect</code> 使用</p>
+<ol>
+<li><code>tgt_input</code> 转成 <code>embedding</code></li>
+<li><code>rnn</code> 把 <code>embedding</code> 转成 <code>hidden</code> 和 <code>output</code></li>
+<li><code>full conect </code>再把 <code>output</code> 转成 <code>output_feature</code></li>
+</ol>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Define the Seq2Seq model</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Seq2Seq</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, encoder, decoder</span>):</span><br><span class="line">        <span class="built_in">super</span>(Seq2Seq, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="comment"># [1]</span></span><br><span class="line">        <span class="variable language_">self</span>.encoder = encoder</span><br><span class="line">        <span class="variable language_">self</span>.decoder = decoder</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, src_seq, tgt_seq, teacher_forcing_ratio=<span class="number">0.5</span></span>):</span><br><span class="line">        batch_size = src_seq.size(<span class="number">0</span>)</span><br><span class="line">        <span class="comment"># count of words [[0, 1, 2, 9]]</span></span><br><span class="line">        max_len = tgt_seq.size(<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># 11</span></span><br><span class="line">        tgt_vocab_size = <span class="variable language_">self</span>.decoder.out.out_features</span><br><span class="line">        <span class="comment"># 有 11 个隐状态，就是 target 中的唯一值</span></span><br><span class="line">        outputs = torch.zeros(batch_size, max_len, tgt_vocab_size)</span><br><span class="line">        </span><br><span class="line">        encoder_hidden = <span class="variable language_">self</span>.encoder.init_hidden()</span><br><span class="line">        <span class="comment"># encoder 的作用是 输出 hidden， output 就没有什么意义了</span></span><br><span class="line">        <span class="comment"># [2]</span></span><br><span class="line">        encoder_output, encoder_hidden = <span class="variable language_">self</span>.encoder(src_seq, encoder_hidden)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># tgt_seq 作用，就是取得第一个 &lt;sos&gt; token</span></span><br><span class="line">        decoder_input = tgt_seq[:, <span class="number">0</span>].unsqueeze(<span class="number">1</span>)  <span class="comment"># Start with &lt;sos&gt;</span></span><br><span class="line">        decoder_hidden = encoder_hidden</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># tgt_seq 作用，截取输出的长度</span></span><br><span class="line">        <span class="comment"># 不取 0，是因为 “0“ index 是一个 &lt;sos&gt;</span></span><br><span class="line">        <span class="comment"># [3]</span></span><br><span class="line">        <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, max_len):</span><br><span class="line">            <span class="comment"># [4]</span></span><br><span class="line">            decoder_output, decoder_hidden = <span class="variable language_">self</span>.decoder(decoder_input, decoder_hidden)</span><br><span class="line">            <span class="comment"># decoder_output shape (1,11)，其实是一个多分类的问题</span></span><br><span class="line">            <span class="comment"># 与 outputs[:, t] = decoder_output 是一样的，因为 batch_size 恒等于 1，所以暂时影响不大，但是实际应用中，应该要改成对应的 batch</span></span><br><span class="line">            outputs[:, t, :] = decoder_output</span><br><span class="line">            top1 = decoder_output.argmax(<span class="number">1</span>).unsqueeze(<span class="number">1</span>)</span><br><span class="line">            <span class="comment"># 这里是取巧了，teacher_forcing_ratio 是取巧了。</span></span><br><span class="line">            <span class="comment"># decode_input_t+1 有时是 decode_output_t， 有时是 real_target_seq_t</span></span><br><span class="line">            <span class="comment"># [5]</span></span><br><span class="line">            decoder_input = tgt_seq[:, t].unsqueeze(<span class="number">1</span>) <span class="keyword">if</span> random.random() &lt; teacher_forcing_ratio <span class="keyword">else</span> top1</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> outputs</span><br></pre></td></tr></table></figure>
+<p>上面的代码是 <code>seq2seq</code> 模型的定义。</p>
+<p><em>训练过程</em><br>可以检查数据在这个模型中流动如下：</p>
+<ol>
+<li>[1] 里面包含了一个 <code>encoder</code> 和 <code>decoder</code></li>
+<li>[2] <code>forword</code> 时,  <code>encoder</code> 转换 <code>src_input</code> 成 <code>hidden</code></li>
+<li>[3] 开始 <code>decoder</code> 循环，最大长度是 <code>max_len</code>。初始化即是： <code>decoder_input = “&lt;sos&gt; index“</code>，<code>decoder_hidden = encoder_hidden</code></li>
+<li>[4] <code>decoder</code> 输出是 <code>output_index</code> + <code>new_hidden</code></li>
+<li>[5] <code>decoder_input+= output_index</code>, <code>decoder_hidden += new_hidden</code> 叠加后再走步骤 [3] 循环</li>
+</ol>
+<p>💡 <code>teacher_forcing</code> 是什么？<br>就是训练的时候，有一定的概率输出是 <em>真实值</em> 而不是 _预测值_。就能是模型更加快的收敛，加速模型的学习。但是过于依赖 _真实值_，就会导致泛化能力差。<code>teacher_forcing_ratio</code> 就可以调整阈值。</p>
+<p><em>推理过程</em>  </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">input_seq = torch.tensor(indices, dtype=torch.long).unsqueeze(<span class="number">0</span>)  <span class="comment"># (1, seq_len)</span></span><br><span class="line"><span class="comment"># 全部的input，都转成 hidden</span></span><br><span class="line">encoder_hidden = model.encoder.init_hidden()</span><br><span class="line"><span class="comment"># encoder 和 decoder 的使用是分开的、</span></span><br><span class="line"><span class="comment"># [1]</span></span><br><span class="line">encoder_output, encoder_hidden = model.encoder(input_seq, encoder_hidden)</span><br><span class="line"><span class="comment"># [2]</span></span><br><span class="line">decoder_input = torch.tensor([[fra_word2idx[<span class="string">&#x27;&lt;sos&gt;&#x27;</span>]]], dtype=torch.long)  <span class="comment"># Start token</span></span><br><span class="line">decoder_hidden = encoder_hidden</span><br><span class="line"></span><br><span class="line">translated_sentence = []</span><br><span class="line"></span><br><span class="line"><span class="comment"># [3]</span></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(max_length):</span><br><span class="line">    <span class="comment"># decoder_input 是逐步的累加的，就是 word1+word2+word3...</span></span><br><span class="line">    <span class="comment"># 第一个 decoder_hidden 是 encoder_hidden</span></span><br><span class="line">    <span class="comment"># 从第二个开始，就是循环得到 decoder_hidden 不停的传入</span></span><br><span class="line">    <span class="comment"># encoder 和 decoder 的使用是分开的</span></span><br><span class="line">    <span class="comment"># [4]</span></span><br><span class="line">    decoder_output, decoder_hidden = model.decoder(decoder_input, decoder_hidden)</span><br><span class="line">    top1 = decoder_output.argmax(<span class="number">1</span>).item()</span><br><span class="line">    <span class="comment"># &quot;&lt;UNK&gt;&quot;, which stands for “unknown.”</span></span><br><span class="line">    <span class="comment"># [5]</span></span><br><span class="line">    translated_word = fra_idx2word.get(top1, <span class="string">&quot;&lt;UNK&gt;&quot;</span>)</span><br><span class="line">    translated_sentence.append(translated_word)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># [6]</span></span><br><span class="line">    <span class="keyword">if</span> translated_word == <span class="string">&#x27;&lt;eos&gt;&#x27;</span>:  <span class="comment"># End of sentence</span></span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    </span><br><span class="line">    decoder_input = torch.tensor([[top1]], dtype=torch.long)  <span class="comment"># Next input token</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> translated_sentence</span><br></pre></td></tr></table></figure>
+<p><em>推理过程</em> 和 _训练过程_，具体原理一致。 有以下的差异点需要注意：</p>
+<ol>
+<li>如何定义开始输出的标志</li>
+<li>如何定义结束输出的标志</li>
+<li>如何定义不认识字符的标志</li>
+</ol>
+<p>代码分析：</p>
+<ol>
+<li>[1] 单独使用 <code>seq2seq&#39;s encoder</code>，且 <em>一次性</em> 生成 <code>encoder hidden</code></li>
+<li>[2] <code>decoder_input</code> 初始化，以  ‘<sos>‘ 开头，标志开始输出</li>
+<li>[3] <code>decoder</code> 开始循环<ol>
+<li>[4] 单独使用 <code>seq2seq&#39;s decoder</code>, 输出 <code>ouput </code>和 <code>new_hidden</code></li>
+<li>[5] 碰到不认识的分类，就使用 ‘<UNK>‘取代</li>
+<li>[6] 如果遇到 ‘<eos>‘ 字符就直接结束循环</li>
+<li>回到 [3] 继续循环</li>
+</ol>
+</li>
+</ol>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 训练结果</span></span><br><span class="line">Epoch: <span class="number">0</span>, Loss: <span class="number">2.820215034484863</span></span><br><span class="line">Epoch: <span class="number">100</span>, Loss: <span class="number">1.0663029670715332</span></span><br><span class="line">Epoch: <span class="number">200</span>, Loss: <span class="number">1.1840879678726197</span></span><br><span class="line">Epoch: <span class="number">300</span>, Loss: <span class="number">1.224123215675354</span></span><br><span class="line">Epoch: <span class="number">400</span>, Loss: <span class="number">1.0645174384117126</span></span><br><span class="line">Epoch: <span class="number">500</span>, Loss: <span class="number">1.061875820159912</span></span><br><span class="line">Epoch: <span class="number">600</span>, Loss: <span class="number">1.0744179487228394</span></span><br><span class="line">Epoch: <span class="number">700</span>, Loss: <span class="number">1.0767890691757203</span></span><br><span class="line">Epoch: <span class="number">800</span>, Loss: <span class="number">1.099305510520935</span></span><br><span class="line">Epoch: <span class="number">900</span>, Loss: <span class="number">1.1019723176956178</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 预测</span></span><br><span class="line">test_sentence = [<span class="string">&quot;i&quot;</span>, <span class="string">&quot;am&quot;</span>]</span><br><span class="line">translation = translate(model, test_sentence)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Translation:&quot;</span>, <span class="string">&quot; &quot;</span>.join(translation))</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">Translation: nous sommes &lt;eos&gt;</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li><code>seq2seq</code> 是一种上层模型架构，应对输入和输出<strong>不定长</strong>的场景</li>
+<li><code>seq2seq</code> 底层可以由<strong>不同</strong>的模型构成</li>
+<li><code>seq2seq</code> 的 <code>Context</code> 是保存了<strong>上下文信息</strong>，是 <code>encoder</code> 和 <code>decoder</code> 都必须能识别的格式</li>
+</ol>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2>]]></content>
+      <categories>
+        <category>学肥AI</category>
+      </categories>
+      <tags>
+        <tag>学肥AI</tag>
+        <tag>seq2seq</tag>
+        <tag>深度学习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>手写 Attention 注意力机制 及理解</title>
+    <url>/2024/08/16/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/</url>
+    <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p><code>RNN</code> 和 各种变体 <code>RNN</code> 中 <code>LSTM</code>&#x2F;<code>GRU</code> 都存在一个问题，就是如何解决 长距离信息的感知。<code>RNN</code> 的解决办法是加大 <code>sequence</code>，更长的窗口记得更加久远的信息；<code>LSTM</code> 和 <code>GRU</code> 就是把记忆设置成不同的权重，对重要的信息加大权重。<code>Attention</code> 又是另外一个角度，去解决这个问题。</p>
+<h2 id="Attention-是什么"><a href="#Attention-是什么" class="headerlink" title="Attention 是什么"></a>Attention 是什么</h2><p><code>Attention</code> 中文是注意力机制，是对某个事物的某部分的关注点。</p>
+<p>从人脑的角度想，时间和资源都是有限的，所以只能在一定的限度内去关注某些部分。比如看到一群人的照片，我们自然去找美女；看一个美女的照片，我们自然去看美女的眼睛。我们为什么会不自主的去看这些部分而不是看全景呢？因为我们的注意力资源是有限的，我们只对关注点高的部分感兴趣。<br>这是属于在我们人脑里面的注意力机制。<br>从模型的角度想，用数学将他们建模，他们应该是注意力得分最高的部分，也就是模型可以重点关注的地方。</p>
+<p>总结，上述就是 <code>Attention Score</code> 的基本的理解。谁得分高，谁就可以得到更加多的关注。</p>
+<p>下面把 <code>Attention Score</code> 用在一段话的理解上。</p>
+<p>我们使用一句话作为例子：姚明，他爸有 2 米高，他从小的数学成绩并不好，经常旷课，他爱吃苹果，他血型是 A。爱玩游戏，他最喜欢的游戏就是塞尔达传说，他还经常逃课去玩；有时候他会打一下篮球和兵乓球，他最喜欢的运动是跑步。他现在身高是 2.13 米，体重是 200 斤，鞋子要穿 48 码的。<br>请问：他为什么可以长这么高。</p>
+<p>从人脑的角度，“姚明为什么这么高”，很自然的想到，他父母高，基因好。之所以有这个判断，是因为问题，和 “父母高”这个信息是 <strong>关联度最高</strong>的。<br>从模型的角度想，用数学将他们建模，即 <em>问题</em> 和 <em>信息的某个部分</em> ，计算的<code>Score</code> 得分最高，所以他们的关联度最高，即他们具有逻辑相关性。</p>
+<p>总结，<code>Attention 机制</code> 在自然语言理解上，即相互的 <code>Score</code> 越高分，即相互的关联性就越大，即他们具有逻辑性。</p>
+<blockquote>
+<p>题外话： 这个有点像 <strong>逻辑</strong>。<br>我们大脑是神经元构成的。神经元，即是 给一个高电平就是 1 ，给一个低电平就是 0 的触角；这个触角，又可以触发另外的神经元。这种就是 “一生二，二生三，三生万物”的体现。因为这种触角的触发，就在我们的大脑里面形成了 <strong>逻辑</strong>。<br><code>Attention Score</code>，有可能构成了模型领域中的 _基础触角_，最后形成了模型领域中 <strong>逻辑</strong>。</p>
+</blockquote>
+<h2 id="分概念讲解"><a href="#分概念讲解" class="headerlink" title="分概念讲解"></a>分概念讲解</h2><p>从上面的例子可以简单的梳理出 <code>Attention 机制</code>。但是落到细节里面，<code>Attention Score</code> 怎么计算，就是从实际的数学模型的角度去说明了。下面就 <code>Attention Score</code> 怎么去计算为线头，来讲解不同概念。</p>
+<blockquote>
+<p>下面是一步一步的说明 Attention 机制 的各种组件，和他们能够解决到什么问题。</p>
+</blockquote>
+<h3 id="QKV-机制"><a href="#QKV-机制" class="headerlink" title="QKV 机制"></a>QKV 机制</h3><blockquote>
+<p>Query Key Value</p>
+</blockquote>
+<p>如果对上述的那句话分成不同的片段：“他爸有 2 米高” seg1，“他从小的数学成绩并不好” seg2，“经常旷课” seg3，“他爱吃苹果” seg4，“他血型是 A” seg5，每个片段都携带了一定量的信息，我们统称他们携带的信息是 <strong>隐状态</strong> <strong>hidden</strong>。对应着，片段的隐状态就是 h1, h2…h5。</p>
+<p>面对 “姚明为什么这么高” 问题的时候，自然的就认为 <code>seg1</code> 的关联性是最高的。但是如果面对 “他三角函数不懂”问题的时候，显然是 <code>seg2</code> 的关联性是最高的。<br>所以的出， 同一个<code>query</code> 对应不同的 <code>segment</code> 的，有不同的 <code>Attention Score</code>；不同的 <code>query</code> 都应该对 同一批的 <code>segment</code> 有不同的 <code>Attention Score</code>。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/27d4a47e-6390-46e1-9cfc-cf807a964c95_1b303e9c-fe57-42f2-80ce-1b15069c47fc.jpeg"><br>如上图所示，就是连线的宽度不同，显示了 <code>query</code> 和 不同 <code>segment</code> 之间的相关性，即不同的得分。</p>
+<p>如果基于传统的 <code>RNN</code> 去表达 <code>Attention</code>，有一定的局限性。 <code>RNN</code> 的计算隐状态 <code>hidden</code> 都是不变的，即每个信息（片段）仅仅只有一个维度，只有一个值。<br>所以 <code>Attention 机制</code> 将 <code>hidden</code> 分拆成 <code>key</code> 和 <code>value</code>，且 <code>query</code> 循环和所有的 <code>key</code> 和 <code>value</code> 计算后才得到 <code>Score</code>。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/ed7f2a6d-58cc-4d66-ab04-87e683be4ded_b6102f89-59fd-47a1-94f4-4c0096fa84d4.jpeg"><br>上图简化出来的公式就是 <code>Attention Score</code> &#x3D; $Attention(QW^Q,KW^K,VW^V)$ ，就是 <strong>注意力评分公式</strong> 了。</p>
+<p>这种把 <code>hidden</code> 拆分成 <code>key</code> 和 <code>value</code>，并且结合  <code>query</code> 计算就是 <code>QKV 机制</code>（ query key value 机制）。</p>
+<h3 id="多头注意力机制"><a href="#多头注意力机制" class="headerlink" title="多头注意力机制"></a>多头注意力机制</h3><blockquote>
+<p>Multiple Head Attention</p>
+</blockquote>
+<p>从上述的 <code>QKV 机制</code> 知道，<code>query</code> 就是根据兴趣点，触发对片段计算评分。<br>如果仅仅是一个 <code>query</code>，其实和 单一使用 <code>RNN hidden</code> 是没有区别的；但是如果增加多几个 <code>query</code>，就可以对信息进行不同维度的分层，也就是 <strong>多头</strong> 的意思。</p>
+<p>🔥 多头注意力机制，就是字如其名，多个 <code>head</code>，多个 <code>query</code>； 一个 <code>head</code> 就是 一个 <code>query</code>。</p>
+<p>比如，“姚明为什么这么高”，“他三角函数不懂” 这两个 <code>query</code> 都同时对原信息进行统计评分，就可以得到不同 <code>segment</code> 对应的 <code>Attention Score</code>。</p>
+<p>🔥 有点像是  <code>CNN</code> 的卷积核，可以抽取不同的特征维度。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/d759a94d-fe06-4a2c-baee-e3600f458cd8_389bd982-7410-49f2-9f81-577b6901d74c.jpeg"><br><code>query</code>, <code>key</code>, <code>value</code> 因为不同的 <code>head</code> 都带有自己的（$W^Q W^K W^V$） 矩阵进行学习，这样就能够带来更加多的学习性。</p>
+<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><blockquote>
+<p>Self Attention</p>
+</blockquote>
+<p>有时候，一句话中，已经蕴含了逻辑。比如上面的“姚明描述”，就算没有提问，都可以从自身的句子中建立了关联。</p>
+<p>比如，“他从小的数学成绩并不好” <code>seg2</code> 和 “经常旷课” <code>seg3</code>，他们两个片段就有非常强的相关性，他们 <code>Attention Score</code> 的得分就高；同理“经常旷课” <code>seg3</code>，“他爱吃苹果” <code>seg4</code>，他们的得分就不高。</p>
+<p>🔥 所以当 <code>Query Key Value</code> 都是自己的，就是 <strong>自注意力机制</strong>，对自己的信息片段建立 <code>Attention Score</code>。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/0cdf99e8-066b-4390-a980-6c5ac39ce0b2_e1aab5d8-ebd1-4c02-8f37-6bed0a48f488.jpeg"><br>上图可以知道，越粗的线，就是他们的 <code>attention score</code> 更加的高分；且这是自身片段和片段之间的评分。就是自注意力机制的体现。</p>
+<h3 id="注意力得分代码部分"><a href="#注意力得分代码部分" class="headerlink" title="注意力得分代码部分"></a>注意力得分代码部分</h3><p><code>Attention Score</code>，到底他们是如何计算的呢？<br>下面是简易自注意力得分的代码片段。里面已经包含了 <strong>QKV 机制</strong>，<strong>多头注意力机制</strong>，和 <strong>自注意力机制</strong>。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># [0]</span></span><br><span class="line">query_f = nn.Linear(d_model, d_model)</span><br><span class="line">key_f = nn.Linear(d_model, d_model)</span><br><span class="line">value_f = nn.Linear(d_model, d_model)</span><br><span class="line">fc = nn.Linear(d_model, d_model)</span><br><span class="line"><span class="comment"># [3]</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, query, key, value, mask=<span class="literal">None</span></span>):</span><br><span class="line">    batch_size = query.size(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">transform</span>(<span class="params">x</span>):</span><br><span class="line">        <span class="keyword">return</span> x.view(batch_size, -<span class="number">1</span>, <span class="variable language_">self</span>.num_heads, <span class="variable language_">self</span>.d_k).transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">    <span class="comment"># [1] 对 query，key，value 进行全链接的转换</span></span><br><span class="line">    query = transform(query_f(query))</span><br><span class="line">    key = transform(key_f(key))</span><br><span class="line">    value = transform(value_f(value))</span><br><span class="line">    <span class="comment"># [2] 封装的方法</span></span><br><span class="line">    attn_output, attn = ScaledDotProductAttention(<span class="variable language_">self</span>.d_k)(query, key, value, mask)</span><br></pre></td></tr></table></figure>
+<p>_代码解析_：  </p>
+<ol>
+<li>[0] query_f，key_f， value_f 定义 全链接网络，用于学习的参数</li>
+<li>[1] query，key，value 进行全链接的转换，这里有参数的学习</li>
+<li>[2] 封装的方法，可以计算出最后的 <code>Attention Sore</code>，里面已经包含 点积&#x2F;softmax 等计算</li>
+<li>[3] 如果 query, key, value 都是同一个变量的时候，那么就是一个 <strong>多头的自注意力机制</strong> 的计算公式</li>
+</ol>
+<p> 多头自注意力机制的数学表达式：<br>$head_i&#x3D;Attention(QW_i^Q,KW_i^K,VW_i^V)$ （ $W_i^Q W_i^K W_i^V$ 都是不同的全链接网络 ）</p>
+<h3 id="例子说明"><a href="#例子说明" class="headerlink" title="例子说明"></a>例子说明</h3><p>可运行的 ipynb 文件<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/attention.ipynb">链接</a>。<br>任务：输入数据，计算数据之间的注意力分数，并且可以视觉化数据之间的关注度。</p>
+<p><em>代码解析</em>  </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">input_seq = torch.tensor([</span><br><span class="line">    [<span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>, <span class="number">0.0</span>],  <span class="comment"># Token 1</span></span><br><span class="line">    [<span class="number">0.0</span>, <span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>],  <span class="comment"># Token 2</span></span><br><span class="line">    [<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>],  <span class="comment"># Token 3</span></span><br><span class="line">    [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>],  <span class="comment"># Token 4</span></span><br><span class="line">    [<span class="number">1.0</span>, <span class="number">0.5</span>, <span class="number">0.5</span>, <span class="number">0.0</span>]   <span class="comment"># Token 5</span></span><br><span class="line">], dtype=torch.float32)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dimensions</span></span><br><span class="line">d_k = input_seq.shape[<span class="number">1</span>]  <span class="comment"># Embedding dimension (4 in this case)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Query, Key, and Value are all set to the input sequence (self-attention)</span></span><br><span class="line">query = input_seq</span><br><span class="line">key = input_seq</span><br><span class="line">value = input_seq</span><br><span class="line"></span><br><span class="line"><span class="comment"># Calculate attention scores (scaled dot-product)</span></span><br><span class="line"><span class="comment"># [1]</span></span><br><span class="line">scores = torch.matmul(query, key.transpose(-<span class="number">2</span>, -<span class="number">1</span>)) / torch.sqrt(torch.tensor(d_k))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Attention scores:\n&quot;</span>, scores)</span><br><span class="line"><span class="comment"># Apply softmax to get attention weights</span></span><br><span class="line"><span class="comment"># [2]</span></span><br><span class="line">attention_weights = F.softmax(scores, dim=-<span class="number">1</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Attention scores afert softmax:\n&quot;</span>, attention_weights)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Calculate the output as a weighted sum of the values</span></span><br><span class="line"><span class="comment"># [3]</span></span><br><span class="line">output = torch.matmul(attention_weights, value)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Attention Weights:\n&quot;</span>, attention_weights)</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>[1] 简单使用对 query key 进行 点积 来计算分数</p>
+<blockquote>
+<p>这里使用了简化版本，<strong>没有</strong> $W^q$ $W^k$ 的矩阵学习</p>
+</blockquote>
+</li>
+<li><p>[2] softmax score，全部值归一到 (0,1) 的值中</p>
+</li>
+<li><p>[3] score 和 value 相乘，得到最后的 weights，就是最后的结果</p>
+<blockquote>
+<p>这里使用了简化版本，<strong>没有</strong> $W^v$  的矩阵学习</p>
+</blockquote>
+</li>
+</ol>
+<p><em>运行结果</em>  </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">Attention scores:</span></span><br><span class="line"><span class="string"> tensor([[1.0000, 0.0000, 0.5000, 0.5000, 0.7500],</span></span><br><span class="line"><span class="string">        [0.0000, 1.0000, 0.5000, 0.5000, 0.2500],</span></span><br><span class="line"><span class="string">        [0.5000, 0.5000, 1.0000, 0.0000, 0.7500],</span></span><br><span class="line"><span class="string">        [0.5000, 0.5000, 0.0000, 1.0000, 0.2500],</span></span><br><span class="line"><span class="string">        [0.7500, 0.2500, 0.7500, 0.2500, 0.7500]])</span></span><br><span class="line"><span class="string">Attention scores afert softmax:</span></span><br><span class="line"><span class="string"> tensor([[0.2976, 0.1095, 0.1805, 0.1805, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1205, 0.3275, 0.1986, 0.1986, 0.1547],</span></span><br><span class="line"><span class="string">        [0.1805, 0.1805, 0.2976, 0.1095, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1986, 0.1986, 0.1205, 0.3275, 0.1547],</span></span><br><span class="line"><span class="string">        [0.2374, 0.1440, 0.2374, 0.1440, 0.2374]])</span></span><br><span class="line"><span class="string">Attention Weights:</span></span><br><span class="line"><span class="string"> tensor([[0.2976, 0.1095, 0.1805, 0.1805, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1205, 0.3275, 0.1986, 0.1986, 0.1547],</span></span><br><span class="line"><span class="string">        [0.1805, 0.1805, 0.2976, 0.1095, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1986, 0.1986, 0.1205, 0.3275, 0.1547],</span></span><br><span class="line"><span class="string">        [0.2374, 0.1440, 0.2374, 0.1440, 0.2374]])</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/6d9f194c-b314-4af9-bb93-dd782176ad6a_169e0c5f-3757-4035-b6eb-aa505bd920b9.png" alt="image.png"><br>从图上可以看到，注意力的热图，表示每个 token 之间的注意力的关系。 Y 轴是 <code>Query Token</code>，X 轴是 <code>Key Token</code>。图中每一行中越深色的方块，就代表 <code>Query</code> 在这行中的  <code>Key</code> 的得分最高。<br>比如，第一行，<code>query1</code> 对 <code>key1</code>（自己）的颜色最深，说明每个 <code>Token</code> 都应该与自己的关联度高；第 5 行，<code>query5</code> 对 <code>key1</code>，<code>key3</code>，<code>key5</code> 的得分一样且颜色最深，说明 <code>query5</code> 的关联与 <code>key1</code>，<code>key3</code>，<code>key5</code> 相一样。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>Attention 机制</code> 的优势  </p>
+<ol>
+<li>关注你想要的信息，解决了长序列的问题</li>
+<li>可以有多维的角度去理解数据</li>
+<li>其中蕴含了逻辑</li>
+</ol>
+<p><code>Attention 机制</code> 是 <code>Transformer</code> 的基础，所有所有的 <code>NLP</code> 中打开了新的一扇窗。</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><p><a href="https://zh-v2.d2l.ai/chapter_attention-mechanisms/attention-cues.html#id4">Dive into deep learning</a></p>
+]]></content>
+      <categories>
+        <category>学肥AI</category>
+      </categories>
+      <tags>
+        <tag>学肥AI</tag>
+        <tag>深度学习</tag>
+        <tag>Attention</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>手写 LSTM 和 GRU 且原理分析</title>
+    <url>/2024/08/09/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20LSTM%20%E5%92%8C%20GRU%20%E4%B8%94%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p><code>RNN</code> 是解决时间序列数据的模型。但是他无法解决时间步过长而无法记住长期信息的这个问题。从而诞生了很多 <code>RNN</code> 的变种模型来解决这些问题。我们今天来看下他们的原理和手写他们的实现。</p>
+<h2 id="复杂-RNN"><a href="#复杂-RNN" class="headerlink" title="复杂 RNN"></a>复杂 RNN</h2><p>常规的 <code>RNN</code> 的逻辑图如下：<br><img src="https://qiniu.oldzhangtech.com/mdpic/95f069d6-06bc-4df6-bbc8-89dc1ab54513_145485d3-8e45-4726-b6e8-fcf46df277fa.jpeg"></p>
+<p>代码如下：<br>$h_{t} &#x3D; f(h_{t-1},x_t)$<br>$o_t &#x3D; g(h_t)$ </p>
+<p>为了解决 传统 <code>RNN</code> 的问题，就有了以下的思路：  </p>
+<ol>
+<li>在不同的转换过程（每个连线）中增加多 一些轻量级的转换，增加记忆度</li>
+<li>加上残差层</li>
+<li>增加多更多的输出层，先抽取低维特征，再抽取高维特征的方法</li>
+</ol>
+<p>各种的变体的 <code>RNN</code> 的架构图如下：<br><img src="https://qiniu.oldzhangtech.com/mdpic/e58e3b3d-03da-4c17-bd57-fdde80d71a73_184ba76b-3fd9-45d1-b587-d4dd986b95fc.jpeg"></p>
+<p>其中最优秀的两种变体模型就是 <code>LSTM</code> 和 <code>GRU</code> 的模型。下面分别对下面的模型进行介绍。</p>
+<h2 id="LSTM"><a href="#LSTM" class="headerlink" title="LSTM"></a>LSTM</h2><p><code>LSTM</code>（Long Short-Term Memory）全称 长短期记忆。简单的说，就是记忆分长期和短期的。长期的记忆，可以长时间存活；同理，短期记忆生存时间就比较短。</p>
+<p>🔥 <code>RNN</code> 记忆是存在每个时间步的隐状态中的，随着时间的推移，会“遗忘”时间长的隐状态，即权重逐步减少； <code>LSTM</code> 就是 针对重要的记忆，拿个记事本记住，让他不会随着时间的推移而忘记了。</p>
+<p><code>LSTM</code> 与人类的日记习惯一致，每天记录到日记的事情都是重要的事情，但是不会 24 小时每分每秒的事情都记住。某年某月某日中了双色球头奖（长期记忆），都会记录下来，多年后再翻看，都会记忆犹新；同时，489 天前的晚饭吃了什么（短期记忆），大体不会出现在你日记本内，当然也不会在你的脑海内。</p>
+<blockquote>
+<p>记住了原理就可以，不需要过多的细节</p>
+</blockquote>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p><em>原理图</em><br><img src="https://qiniu.oldzhangtech.com/mdpic/6cf90fbb-3bef-4376-afa2-49b857b98e89_9a2d9ced-e5a5-4497-95db-0418b57fc8da.jpeg"><br>对比 <code>RNN</code>，<code>LSTM</code> 就可以对某些记忆认为是长期的且重要的，进行加权，让他的权重不减弱。</p>
+<p><em>逻辑说明</em><br>这里出现了一个新的概念：<code>Cell 记忆</code> 他是包含在 <code>LSTMCell</code> 里面一个内置的记忆体，他就是用于记住哪些 <code>Long Term Memory</code>。 </p>
+<p><code>LSTMCell</code>  就是 <code>LSTMModel</code> 的基础的组件，下图就是 <code>LSTMCell</code> 的原理图。整个 <code>Cell</code>  有 3 个门来控制记忆，包括了 遗忘门&#x2F;输入门&#x2F;输出门，由他们来控制 输入&#x2F;输出&#x2F;隐状态&#x2F;记忆 之间的关系。<br><img src="https://qiniu.oldzhangtech.com/mdpic/bdf5c0f7-e18f-401e-b7b5-c43ddab01baf_dbd5558a-4c81-447c-8bb6-a83b18f14a7c.png" alt="image.png"></p>
+<blockquote>
+<p>我们直接 dive deep into code，对照这个原理图，会更加容易理解。</p>
+</blockquote>
+<h3 id="组件"><a href="#组件" class="headerlink" title="组件"></a>组件</h3><p>下面是节选<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/lstm.ipynb">例子</a>中的 <strong>手写LSTM</strong> 的 <code>LSTM Cell</code> 代码片段。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LSTMCell</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, input_size, hidden_size</span>):</span><br><span class="line">        <span class="built_in">super</span>(LSTMCell, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.hidden_size = hidden_size</span><br><span class="line">        <span class="comment"># 输入门</span></span><br><span class="line">        <span class="variable language_">self</span>.input_gate = nn.Linear(input_size + hidden_size, hidden_size)</span><br><span class="line">        <span class="comment"># 遗忘门</span></span><br><span class="line">        <span class="variable language_">self</span>.forget_gate = nn.Linear(input_size + hidden_size, hidden_size)</span><br><span class="line">        <span class="comment"># 输出门</span></span><br><span class="line">        <span class="variable language_">self</span>.output_gate = nn.Linear(input_size + hidden_size, hidden_size)</span><br><span class="line">        <span class="comment"># 本 Cell 的记忆门</span></span><br><span class="line">        <span class="variable language_">self</span>.cell_gate = nn.Linear(input_size + hidden_size, hidden_size)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, interState</span>):</span><br><span class="line">        h_prev, c_prev = interState</span><br><span class="line"></span><br><span class="line">        combined = torch.cat((x, h_prev), dim=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">        i_t = torch.sigmoid(<span class="variable language_">self</span>.input_gate(combined))</span><br><span class="line">        f_t = torch.sigmoid(<span class="variable language_">self</span>.forget_gate(combined))</span><br><span class="line">        o_t = torch.sigmoid(<span class="variable language_">self</span>.output_gate(combined))</span><br><span class="line">        c_tilde = torch.tanh(<span class="variable language_">self</span>.cell_gate(combined))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 主要逻辑，下面两行</span></span><br><span class="line">        c_t = f_t * c_prev + i_t * c_tilde</span><br><span class="line">        h_t = o_t * torch.tanh(c_t)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> h_t, (h_t, c_t)</span><br></pre></td></tr></table></figure>
+<p>请结合注释和原理图，进行阅读</p>
+<p><em>总结</em>   </p>
+<ol>
+<li>上述逻辑 都是简单的 <strong>全链接</strong> 和 <strong>激活函数</strong> 构成，所以理解原理是最重要的，内部都是组装而已</li>
+<li>因为是手写 <code>LSTMCell</code>，简化了逻辑，仅仅是针对 单个数据 + 记忆 处理；sequence 的数据 就是在训练的时候，进行循环；batch 的概念，当然也是没有的。<blockquote>
+<p>⚠️ 这里影响到了 1. X, y 的数据结构； 2. 模型内的 forward 的处理方法；3. train 的方法。可以对比文件后面的  nn.LSTM 的解决方法，来一起服用。<br>最好的方式当然是把 手写 LSTMCell 改写成 (batch, sequence, input_feature) X 数据结构 都适用的代码。</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>例子目标： 输入 5 个数字，可以预测下一个数据是多少。</p>
+<p><em>分析过程</em>  </p>
+<ol>
+<li>是 回归问题</li>
+<li>“5 个数字” 是一个有连续先后关系的输入，所以使用类 RNN 的模型</li>
+<li>定义 RNN 的时候 input_feature 和 output_feature 都是 1</li>
+</ol>
+<p>详细的代码可以直接访问 ipynb 文件<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/lstm.ipynb">链接</a>。里面有 手动LSTM 和 nn.LSTM 两种不同的实现方案。</p>
+<p><em>训练后的结果</em>   </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 训练过程</span></span><br><span class="line">epoch: <span class="number">400</span> loss: <span class="number">0.01360714</span></span><br><span class="line">epoch: <span class="number">450</span> loss: <span class="number">0.00120955</span></span><br><span class="line">epoch: <span class="number">499</span> loss: <span class="number">0.0031908983</span></span><br><span class="line"><span class="comment"># 在 500 后收敛</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输入 45,46,47,48,49,50</span></span><br><span class="line"><span class="comment"># 输出</span></span><br><span class="line">[<span class="number">49.966102600097656</span>, <span class="number">50.8197021484375</span>, <span class="number">51.54384231567383</span>, <span class="number">52.14518737792969</span>, <span class="number">52.62910842895508</span>]</span><br></pre></td></tr></table></figure>
+
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="GRU"><a href="#GRU" class="headerlink" title="GRU"></a>GRU</h2><p><code>GRU</code>（Gated Recurrent Unit）全称 门控循环单元，就是使用 逻辑电路的思路去解决模型的问题。</p>
+<p>他和 <code>LSTM</code> 一样，都是为了解决 <code>RNN</code> 的长期记忆的问题。同时比 <code>LSTM</code> 的优势是，仅仅是用了两个门 – 重置门 和 更新门。门的数量的减少，自然参数量可以进一步的减少。</p>
+<blockquote>
+<p>记住了原理就可以，不需要过多的细节</p>
+</blockquote>
+<h3 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h3><p><em>原理图</em><br><img src="https://qiniu.oldzhangtech.com/mdpic/98cd28fc-f93a-49b2-873c-6a432f819079_fbdfb78f-be9e-4200-b583-2b2205b6bd64.png" alt="image.png"><br><code>GRUCell</code>  就是 <code>GRUModel</code> 的基础的组件，上图就是 <code>GRUCell</code> 的原理图。整个 <code>Cell</code>  有 2 个门来控制记忆，包括了 重置门&#x2F;更新门，由他们来控制 输入&#x2F;输出&#x2F;隐状态 之间的关系。</p>
+<p>⚠️ 注意，与 <code>LSTM</code> 对比，<code>GRU</code> 没有 <strong>记忆</strong> 的概念，他的所有的记忆都是隐状态中，并且他是使用 <code>门</code> 来更新&#x2F;重置 隐状态。 </p>
+<h3 id="组件-1"><a href="#组件-1" class="headerlink" title="组件"></a>组件</h3><p>下面是节选<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/gru.ipynb">例子</a>中的 <strong>手写GRU</strong> 的 <code>GRUCell</code> 代码片段。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">GRUCell</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, input_size, hidden_size</span>):</span><br><span class="line">        <span class="built_in">super</span>(GRUCell, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.hidden_size = hidden_size</span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.update_gate = nn.Linear(input_size + hidden_size, hidden_size)</span><br><span class="line">        <span class="variable language_">self</span>.reset_gate = nn.Linear(input_size + hidden_size, hidden_size)</span><br><span class="line">        <span class="variable language_">self</span>.hidden_candidate = nn.Linear(input_size + hidden_size, hidden_size)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, hidden</span>):</span><br><span class="line">        <span class="comment"># print(f&quot;cell forward : &#123;x.shape&#125; &#123;hidden.shape&#125;&quot;)</span></span><br><span class="line">        <span class="comment"># cell forward : torch.Size([1]) torch.Size([50])</span></span><br><span class="line">        combined = torch.cat((x, hidden), dim=<span class="number">0</span>)</span><br><span class="line">        </span><br><span class="line">        update_gate = torch.sigmoid(<span class="variable language_">self</span>.update_gate(combined))</span><br><span class="line">        reset_gate = torch.sigmoid(<span class="variable language_">self</span>.reset_gate(combined))</span><br><span class="line">        <span class="comment"># process reset</span></span><br><span class="line">        combined_hidden = torch.cat((x, reset_gate * hidden), dim=<span class="number">0</span>)</span><br><span class="line">        <span class="comment"># activate after process reset</span></span><br><span class="line">        hidden_candidate = torch.tanh(<span class="variable language_">self</span>.hidden_candidate(combined_hidden))</span><br><span class="line">        <span class="comment"># process update</span></span><br><span class="line">        hidden = (<span class="number">1</span> - update_gate) * hidden + update_gate * hidden_candidate</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> hidden</span><br></pre></td></tr></table></figure>
+<p>请结合注释和原理图，进行阅读。</p>
+<p>与 <code>LSTM</code> 对比   </p>
+<ol>
+<li><strong>没有</strong>了 <code>Cell</code> 的记忆，他是直接修改了 隐状态 <code>hidden</code></li>
+<li>只有两个门，更新门 和 重置门，结构更加的简单</li>
+</ol>
+<p><em>总结</em>   </p>
+<ol>
+<li>上述逻辑 都是简单的 <strong>全链接</strong> 和 <strong>激活函数</strong> 构成，所以理解原理是最重要的，内部都是组装而已</li>
+<li>因为是手写 <code>GRUCell</code>，简化了逻辑，仅仅是针对 单个数据 + 记忆 处理；sequence 的数据 就是在训练的时候，进行循环；batch 的概念，当然也是没有的。<blockquote>
+<p>⚠️ 这里影响到了 1. X, y 的数据结构； 2. 模型内的 forward 的处理方法；3. train 的方法。可以对比文件后面的  nn.GRU 的解决方法，来一起服用。<br>最好的方式当然是把 手写 GRUCell 改写成 (batch, sequence, input_feature) X 数据结构 都适用的代码。</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><p>与 <code>LSTM</code> 的例子的题目是一致的，分析的过程也是一致。</p>
+<p>详细的代码可以直接访问 ipynb 文件<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/gru.ipynb">链接</a>。里面有 手动GRU 和 nn.GRU 两种不同的实现方案。</p>
+<h2 id="-1"><a href="#-1" class="headerlink" title=""></a></h2><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>无论是 <code>RNN</code> 和 <code>类RNN</code> 模型 <code>LSTM</code>&#x2F;<code>GRU</code> 都是 <strong>输出时间步的隐状态</strong>，这是 时序序列相关的模型的关键</li>
+<li><code>LSTM</code> 和 <code>GRU</code> ，具有模型的可解释性，同时他是解决其他问题的方式用在定义模型上，体现跨学科学习的重要性</li>
+<li><code>LSTM</code> 和 <code>GRU</code> 在使用场景上都可以交替使用，看哪个比较适合</li>
+</ol>
+]]></content>
+      <categories>
+        <category>学肥AI</category>
+      </categories>
+      <tags>
+        <tag>学肥AI</tag>
+        <tag>深度学习</tag>
+        <tag>LSTM</tag>
+        <tag>GRU</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>微信云开发及云函数</title>
+    <url>/2024/11/07/%5B%E5%AD%A6%E8%82%A5%E5%BE%AE%E4%BF%A1%E5%BC%80%E5%8F%91%5D%20%E5%BE%AE%E4%BF%A1%E4%BA%91%E5%BC%80%E5%8F%91-%E4%BA%91%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h2 id="云开发是什么"><a href="#云开发是什么" class="headerlink" title="云开发是什么"></a>云开发是什么</h2><p>如果微信小程序是前端，那么后端就是 服务器&#x2F;后端代码运行&#x2F;云存储&#x2F;数据库等，前后端配合才是一个完整的面向服务的程序。</p>
+<p>前后端配置，上述是正常的开发的组合。但是后端涉及到很多繁琐的步骤，比如 域名申请&#x2F;域名解析&#x2F;后端代码部署…一系列的问题。等解决好这些问题，时间都耗费了半天了。</p>
+<p>微信云开发，就是为了解决上述的问题。在 <strong>微信开发者工具</strong> 中就可以一键开发 <strong>数据库&#x2F;云函数&#x2F;云存储</strong>，方便灵活。</p>
+<p>相应的网站说明： <a href="https://developers.weixin.qq.com/miniprogram/dev/wxcloudservice/wxcloud/guide/init.html">云开发 </a>。下面就着 云函数，说明一下。</p>
+<h2 id="云函数-hello-world"><a href="#云函数-hello-world" class="headerlink" title="云函数 hello world"></a>云函数 hello world</h2><ol>
+<li>新建一个 <strong>云环境</strong>，打开 _微信开发者工具_，点击 <em>云开发</em> 按钮。</li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/a3303d65-ae28-4a4a-b024-d00ad6ff4095_ff179b1c-7af2-4c3e-90a7-90529e880779.png"></p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/55118c6e-7dd0-4378-aaad-398c8fa4f6f9_d3cdcadd-4568-4b51-81ad-2d66fe249616.png"></p>
+<p>红色箭头是 <code>envId</code>，后续在代码中用上。暂时先建立一个环境 <code>test</code>。</p>
+<blockquote>
+<p>❓环境是什么？</p>
+<p>就是用来隔离不同 云函数&#x2F;数据库&#x2F;云存储的 空间。可以想象，不同的环境，就等于不同的房子；不同的房子里面虽然都有 桌子椅子，但是他们都是独立的。</p>
+</blockquote>
+<ol start="2">
+<li>新建目录，<code>cloudfunctions</code> ，是云函数的保存目录。在项目根目录找到 <code>project.config.json</code> 文件，新增 <code>cloudfunctionRoot</code> 字段，<code>value</code> 就是 <code>cloudfunctions</code>。</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   <span class="string">&quot;cloudfunctionRoot&quot;</span>: <span class="string">&quot;cloudfunctions/&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 <strong>新建的目录</strong> 上要选择你要在 <code>哪个环境</code> 中进行开发云函数，比如下图，选择了 新建的 <code>test</code> 环境。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/5bed85c0-d45a-4bc6-84b7-4b3601f05b1d_678f3efa-eef6-4d5d-94a6-f9f2acf75f09.png"></p>
+<ol start="3">
+<li>创建云函数，在 <code>cloudfunctions</code> 目录 右键，点击 【新建 node.js 云函数】，名字叫 <code>add</code>。</li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/1e29e888-7ffc-4c8e-ad45-9211e11c3688_6c840fc5-13f7-4e5e-b1c0-257e5525e4c3.png"></p>
+<p>add 目录下 增加多 3 个文件</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/b062fd6a-be83-4b1f-adaa-abc4b1c445aa_55aae544-8c59-4f95-8fee-fa139fc5b325.png"></p>
+<ol start="4">
+<li>修改 <code>add/index.js</code> ，全文替换成下面的代码。</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 云函数入口函数</span></span><br><span class="line"><span class="built_in">exports</span>.<span class="property">main</span> = <span class="title function_">async</span> (event, context) =&gt; &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">sum</span>: event.<span class="property">a</span> + event.<span class="property">b</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="5">
+<li>修改 <code>package.json</code>， 删除 <code>dependencies</code> 里面的值，类似的代码如下</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;dependencies&quot;</span>: &#123;</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="6">
+<li>上传函数，变成 <code>云</code></li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/8677fd70-f4e7-48dc-8151-500ce61fc6c5_2e030105-4f2e-4076-9e42-aa5d749a7d49.png"></p>
+<blockquote>
+<p>如果，有以下的情况</p>
+<ol>
+<li><code>index.js</code> 中 <strong>没有</strong> <code>const cloud = require(&#39;wx-server-sdk&#39;)</code> 代码</li>
+<li><code>package.json</code> 的 <code>dependencies</code> 字段 没有值</li>
+</ol>
+<p>就可以  点击【上传并部署: 所有文件】菜单，比如 本例。</p>
+<p>如果有上述的情况，就可以  点击【上传并部署: 云端安装依赖】菜单。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/beccdf18-d285-4e40-a6f3-1ab02736ce83_c349e39c-ec34-4d3a-9292-92cbc54a50e9.png"></p>
+</blockquote>
+<blockquote>
+<p>💡 ‘wx-server-sdk’ 的安装，是为了 云函数中可以 调用 <strong>数据库</strong> 和 <strong>云存储</strong>。如果你在微信小程序中是直接 调用 数据库 和 云存储，就没有必要在 云函数 中倒一倒了。</p>
+</blockquote>
+<ol start="7">
+<li>调试云函数，在 <strong>开发者工具</strong> 就可以调试刚刚上传的云函数</li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/1ae346b2-e450-4d10-b42a-c05843452c69_385b46fd-7871-4826-8fb7-348178fcd442.png"></p>
+<ol start="8">
+<li>小程序中调用 云函数 add</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">wx.<span class="property">cloud</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">      <span class="attr">env</span>: <span class="string">&#x27;test-safjlfjasdfasf&#x27;</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">wx.<span class="property">cloud</span>.<span class="title function_">callFunction</span>(&#123;</span><br><span class="line">      <span class="comment">// 云函数名称</span></span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;add&#x27;</span>,</span><br><span class="line">      <span class="comment">// 传给云函数的参数</span></span><br><span class="line">      <span class="attr">data</span>: &#123;</span><br><span class="line">        <span class="attr">a</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="attr">b</span>: <span class="number">2</span>,</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">success</span>: <span class="keyword">function</span>(<span class="params">res</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(res.<span class="property">result</span>.<span class="property">sum</span>) <span class="comment">// 3</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">fail</span>: <span class="variable language_">console</span>.<span class="property">error</span></span><br><span class="line">    &#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="9">
+<li>撒花</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><em>微信云开发</em> 开发 _云函数_，可以在一个工具里面同时开发前端和后端的代码，减少繁琐的步骤，加快开发的效率。</p>
+]]></content>
+      <categories>
+        <category>微信云开发</category>
+      </categories>
+      <tags>
+        <tag>微信</tag>
+        <tag>微信云开发</tag>
+        <tag>云开发</tag>
+        <tag>云函数</tag>
+        <tag>云数据库</tag>
+        <tag>云存储</tag>
+      </tags>
+  </entry>
+</search>

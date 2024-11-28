@@ -1,0 +1,229 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>手写 Attention 注意力机制 及理解 | 做人最紧要是开心</title><meta name="author" content="小兵张咔咔"><meta name="copyright" content="小兵张咔咔"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="&#96;RNN&#96; 和 各种变体 &#96;RNN&#96; 中 &#96;LSTM&#96;&#x2F;&#96;GRU&#96; 都存在一个问题，就是如何解决 长距离信息的感知。&#96;RNN&#96; 的解决办法是加大 &#96;sequence&#96;，更长的窗口记得更加久远的信息；&#96;LSTM&#96; 和 &#96;GRU&#96; 就是把记忆设置成不同的权重，对重要的信息加大权重。&#96;Attention&#96; 又是另外一个角度，去解决这个问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手写 Attention 注意力机制 及理解">
+<meta property="og:url" content="http://example.com/2024/08/16/[%E5%AD%A6%E8%82%A5AI]%20%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:site_name" content="做人最紧要是开心">
+<meta property="og:description" content="&#96;RNN&#96; 和 各种变体 &#96;RNN&#96; 中 &#96;LSTM&#96;&#x2F;&#96;GRU&#96; 都存在一个问题，就是如何解决 长距离信息的感知。&#96;RNN&#96; 的解决办法是加大 &#96;sequence&#96;，更长的窗口记得更加久远的信息；&#96;LSTM&#96; 和 &#96;GRU&#96; 就是把记忆设置成不同的权重，对重要的信息加大权重。&#96;Attention&#96; 又是另外一个角度，去解决这个问题。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3.jpg">
+<meta property="article:published_time" content="2024-08-16T02:18:38.000Z">
+<meta property="article:modified_time" content="2024-11-28T08:31:31.537Z">
+<meta property="article:author" content="小兵张咔咔">
+<meta property="article:tag" content="学肥AI">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="Attention">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3.jpg"><link rel="shortcut icon" href="/assets/avator.png"><link rel="canonical" href="http://example.com/2024/08/16/[%E5%AD%A6%E8%82%A5AI]%20%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: 'days',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '手写 Attention 注意力机制 及理解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-color: #cccccc;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/assets/avator.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/assets/avator.png" alt="Logo"></a><a class="nav-page-title" href="/"><span class="site-name">手写 Attention 注意力机制 及理解</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">手写 Attention 注意力机制 及理解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2024-08-16T02:18:38.000Z" title="Created 2024-08-16 10:18:38">2024-08-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2024-11-28T08:31:31.537Z" title="Updated 2024-11-28 16:31:31">2024-11-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E8%82%A5AI/">学肥AI</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p><code>RNN</code> 和 各种变体 <code>RNN</code> 中 <code>LSTM</code>&#x2F;<code>GRU</code> 都存在一个问题，就是如何解决 长距离信息的感知。<code>RNN</code> 的解决办法是加大 <code>sequence</code>，更长的窗口记得更加久远的信息；<code>LSTM</code> 和 <code>GRU</code> 就是把记忆设置成不同的权重，对重要的信息加大权重。<code>Attention</code> 又是另外一个角度，去解决这个问题。</p>
+<h2 id="Attention-是什么"><a href="#Attention-是什么" class="headerlink" title="Attention 是什么"></a>Attention 是什么</h2><p><code>Attention</code> 中文是注意力机制，是对某个事物的某部分的关注点。</p>
+<p>从人脑的角度想，时间和资源都是有限的，所以只能在一定的限度内去关注某些部分。比如看到一群人的照片，我们自然去找美女；看一个美女的照片，我们自然去看美女的眼睛。我们为什么会不自主的去看这些部分而不是看全景呢？因为我们的注意力资源是有限的，我们只对关注点高的部分感兴趣。<br>这是属于在我们人脑里面的注意力机制。<br>从模型的角度想，用数学将他们建模，他们应该是注意力得分最高的部分，也就是模型可以重点关注的地方。</p>
+<p>总结，上述就是 <code>Attention Score</code> 的基本的理解。谁得分高，谁就可以得到更加多的关注。</p>
+<p>下面把 <code>Attention Score</code> 用在一段话的理解上。</p>
+<p>我们使用一句话作为例子：姚明，他爸有 2 米高，他从小的数学成绩并不好，经常旷课，他爱吃苹果，他血型是 A。爱玩游戏，他最喜欢的游戏就是塞尔达传说，他还经常逃课去玩；有时候他会打一下篮球和兵乓球，他最喜欢的运动是跑步。他现在身高是 2.13 米，体重是 200 斤，鞋子要穿 48 码的。<br>请问：他为什么可以长这么高。</p>
+<p>从人脑的角度，“姚明为什么这么高”，很自然的想到，他父母高，基因好。之所以有这个判断，是因为问题，和 “父母高”这个信息是 <strong>关联度最高</strong>的。<br>从模型的角度想，用数学将他们建模，即 <em>问题</em> 和 <em>信息的某个部分</em> ，计算的<code>Score</code> 得分最高，所以他们的关联度最高，即他们具有逻辑相关性。</p>
+<p>总结，<code>Attention 机制</code> 在自然语言理解上，即相互的 <code>Score</code> 越高分，即相互的关联性就越大，即他们具有逻辑性。</p>
+<blockquote>
+<p>题外话： 这个有点像 <strong>逻辑</strong>。<br>我们大脑是神经元构成的。神经元，即是 给一个高电平就是 1 ，给一个低电平就是 0 的触角；这个触角，又可以触发另外的神经元。这种就是 “一生二，二生三，三生万物”的体现。因为这种触角的触发，就在我们的大脑里面形成了 <strong>逻辑</strong>。<br><code>Attention Score</code>，有可能构成了模型领域中的 _基础触角_，最后形成了模型领域中 <strong>逻辑</strong>。</p>
+</blockquote>
+<h2 id="分概念讲解"><a href="#分概念讲解" class="headerlink" title="分概念讲解"></a>分概念讲解</h2><p>从上面的例子可以简单的梳理出 <code>Attention 机制</code>。但是落到细节里面，<code>Attention Score</code> 怎么计算，就是从实际的数学模型的角度去说明了。下面就 <code>Attention Score</code> 怎么去计算为线头，来讲解不同概念。</p>
+<blockquote>
+<p>下面是一步一步的说明 Attention 机制 的各种组件，和他们能够解决到什么问题。</p>
+</blockquote>
+<h3 id="QKV-机制"><a href="#QKV-机制" class="headerlink" title="QKV 机制"></a>QKV 机制</h3><blockquote>
+<p>Query Key Value</p>
+</blockquote>
+<p>如果对上述的那句话分成不同的片段：“他爸有 2 米高” seg1，“他从小的数学成绩并不好” seg2，“经常旷课” seg3，“他爱吃苹果” seg4，“他血型是 A” seg5，每个片段都携带了一定量的信息，我们统称他们携带的信息是 <strong>隐状态</strong> <strong>hidden</strong>。对应着，片段的隐状态就是 h1, h2…h5。</p>
+<p>面对 “姚明为什么这么高” 问题的时候，自然的就认为 <code>seg1</code> 的关联性是最高的。但是如果面对 “他三角函数不懂”问题的时候，显然是 <code>seg2</code> 的关联性是最高的。<br>所以的出， 同一个<code>query</code> 对应不同的 <code>segment</code> 的，有不同的 <code>Attention Score</code>；不同的 <code>query</code> 都应该对 同一批的 <code>segment</code> 有不同的 <code>Attention Score</code>。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/27d4a47e-6390-46e1-9cfc-cf807a964c95_1b303e9c-fe57-42f2-80ce-1b15069c47fc.jpeg"><br>如上图所示，就是连线的宽度不同，显示了 <code>query</code> 和 不同 <code>segment</code> 之间的相关性，即不同的得分。</p>
+<p>如果基于传统的 <code>RNN</code> 去表达 <code>Attention</code>，有一定的局限性。 <code>RNN</code> 的计算隐状态 <code>hidden</code> 都是不变的，即每个信息（片段）仅仅只有一个维度，只有一个值。<br>所以 <code>Attention 机制</code> 将 <code>hidden</code> 分拆成 <code>key</code> 和 <code>value</code>，且 <code>query</code> 循环和所有的 <code>key</code> 和 <code>value</code> 计算后才得到 <code>Score</code>。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/ed7f2a6d-58cc-4d66-ab04-87e683be4ded_b6102f89-59fd-47a1-94f4-4c0096fa84d4.jpeg"><br>上图简化出来的公式就是 <code>Attention Score</code> &#x3D; $Attention(QW^Q,KW^K,VW^V)$ ，就是 <strong>注意力评分公式</strong> 了。</p>
+<p>这种把 <code>hidden</code> 拆分成 <code>key</code> 和 <code>value</code>，并且结合  <code>query</code> 计算就是 <code>QKV 机制</code>（ query key value 机制）。</p>
+<h3 id="多头注意力机制"><a href="#多头注意力机制" class="headerlink" title="多头注意力机制"></a>多头注意力机制</h3><blockquote>
+<p>Multiple Head Attention</p>
+</blockquote>
+<p>从上述的 <code>QKV 机制</code> 知道，<code>query</code> 就是根据兴趣点，触发对片段计算评分。<br>如果仅仅是一个 <code>query</code>，其实和 单一使用 <code>RNN hidden</code> 是没有区别的；但是如果增加多几个 <code>query</code>，就可以对信息进行不同维度的分层，也就是 <strong>多头</strong> 的意思。</p>
+<p>🔥 多头注意力机制，就是字如其名，多个 <code>head</code>，多个 <code>query</code>； 一个 <code>head</code> 就是 一个 <code>query</code>。</p>
+<p>比如，“姚明为什么这么高”，“他三角函数不懂” 这两个 <code>query</code> 都同时对原信息进行统计评分，就可以得到不同 <code>segment</code> 对应的 <code>Attention Score</code>。</p>
+<p>🔥 有点像是  <code>CNN</code> 的卷积核，可以抽取不同的特征维度。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/d759a94d-fe06-4a2c-baee-e3600f458cd8_389bd982-7410-49f2-9f81-577b6901d74c.jpeg"><br><code>query</code>, <code>key</code>, <code>value</code> 因为不同的 <code>head</code> 都带有自己的（$W^Q W^K W^V$） 矩阵进行学习，这样就能够带来更加多的学习性。</p>
+<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><blockquote>
+<p>Self Attention</p>
+</blockquote>
+<p>有时候，一句话中，已经蕴含了逻辑。比如上面的“姚明描述”，就算没有提问，都可以从自身的句子中建立了关联。</p>
+<p>比如，“他从小的数学成绩并不好” <code>seg2</code> 和 “经常旷课” <code>seg3</code>，他们两个片段就有非常强的相关性，他们 <code>Attention Score</code> 的得分就高；同理“经常旷课” <code>seg3</code>，“他爱吃苹果” <code>seg4</code>，他们的得分就不高。</p>
+<p>🔥 所以当 <code>Query Key Value</code> 都是自己的，就是 <strong>自注意力机制</strong>，对自己的信息片段建立 <code>Attention Score</code>。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/0cdf99e8-066b-4390-a980-6c5ac39ce0b2_e1aab5d8-ebd1-4c02-8f37-6bed0a48f488.jpeg"><br>上图可以知道，越粗的线，就是他们的 <code>attention score</code> 更加的高分；且这是自身片段和片段之间的评分。就是自注意力机制的体现。</p>
+<h3 id="注意力得分代码部分"><a href="#注意力得分代码部分" class="headerlink" title="注意力得分代码部分"></a>注意力得分代码部分</h3><p><code>Attention Score</code>，到底他们是如何计算的呢？<br>下面是简易自注意力得分的代码片段。里面已经包含了 <strong>QKV 机制</strong>，<strong>多头注意力机制</strong>，和 <strong>自注意力机制</strong>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># [0]</span></span><br><span class="line">query_f = nn.Linear(d_model, d_model)</span><br><span class="line">key_f = nn.Linear(d_model, d_model)</span><br><span class="line">value_f = nn.Linear(d_model, d_model)</span><br><span class="line">fc = nn.Linear(d_model, d_model)</span><br><span class="line"><span class="comment"># [3]</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, query, key, value, mask=<span class="literal">None</span></span>):</span><br><span class="line">    batch_size = query.size(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">transform</span>(<span class="params">x</span>):</span><br><span class="line">        <span class="keyword">return</span> x.view(batch_size, -<span class="number">1</span>, <span class="variable language_">self</span>.num_heads, <span class="variable language_">self</span>.d_k).transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">    <span class="comment"># [1] 对 query，key，value 进行全链接的转换</span></span><br><span class="line">    query = transform(query_f(query))</span><br><span class="line">    key = transform(key_f(key))</span><br><span class="line">    value = transform(value_f(value))</span><br><span class="line">    <span class="comment"># [2] 封装的方法</span></span><br><span class="line">    attn_output, attn = ScaledDotProductAttention(<span class="variable language_">self</span>.d_k)(query, key, value, mask)</span><br></pre></td></tr></table></figure>
+<p>_代码解析_：  </p>
+<ol>
+<li>[0] query_f，key_f， value_f 定义 全链接网络，用于学习的参数</li>
+<li>[1] query，key，value 进行全链接的转换，这里有参数的学习</li>
+<li>[2] 封装的方法，可以计算出最后的 <code>Attention Sore</code>，里面已经包含 点积&#x2F;softmax 等计算</li>
+<li>[3] 如果 query, key, value 都是同一个变量的时候，那么就是一个 <strong>多头的自注意力机制</strong> 的计算公式</li>
+</ol>
+<p> 多头自注意力机制的数学表达式：<br>$head_i&#x3D;Attention(QW_i^Q,KW_i^K,VW_i^V)$ （ $W_i^Q W_i^K W_i^V$ 都是不同的全链接网络 ）</p>
+<h3 id="例子说明"><a href="#例子说明" class="headerlink" title="例子说明"></a>例子说明</h3><p>可运行的 ipynb 文件<a target="_blank" rel="noopener" href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/attention.ipynb">链接</a>。<br>任务：输入数据，计算数据之间的注意力分数，并且可以视觉化数据之间的关注度。</p>
+<p><em>代码解析</em>  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">input_seq = torch.tensor([</span><br><span class="line">    [<span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>, <span class="number">0.0</span>],  <span class="comment"># Token 1</span></span><br><span class="line">    [<span class="number">0.0</span>, <span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>],  <span class="comment"># Token 2</span></span><br><span class="line">    [<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>],  <span class="comment"># Token 3</span></span><br><span class="line">    [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>],  <span class="comment"># Token 4</span></span><br><span class="line">    [<span class="number">1.0</span>, <span class="number">0.5</span>, <span class="number">0.5</span>, <span class="number">0.0</span>]   <span class="comment"># Token 5</span></span><br><span class="line">], dtype=torch.float32)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dimensions</span></span><br><span class="line">d_k = input_seq.shape[<span class="number">1</span>]  <span class="comment"># Embedding dimension (4 in this case)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Query, Key, and Value are all set to the input sequence (self-attention)</span></span><br><span class="line">query = input_seq</span><br><span class="line">key = input_seq</span><br><span class="line">value = input_seq</span><br><span class="line"></span><br><span class="line"><span class="comment"># Calculate attention scores (scaled dot-product)</span></span><br><span class="line"><span class="comment"># [1]</span></span><br><span class="line">scores = torch.matmul(query, key.transpose(-<span class="number">2</span>, -<span class="number">1</span>)) / torch.sqrt(torch.tensor(d_k))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Attention scores:\n&quot;</span>, scores)</span><br><span class="line"><span class="comment"># Apply softmax to get attention weights</span></span><br><span class="line"><span class="comment"># [2]</span></span><br><span class="line">attention_weights = F.softmax(scores, dim=-<span class="number">1</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Attention scores afert softmax:\n&quot;</span>, attention_weights)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Calculate the output as a weighted sum of the values</span></span><br><span class="line"><span class="comment"># [3]</span></span><br><span class="line">output = torch.matmul(attention_weights, value)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Attention Weights:\n&quot;</span>, attention_weights)</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>[1] 简单使用对 query key 进行 点积 来计算分数</p>
+<blockquote>
+<p>这里使用了简化版本，<strong>没有</strong> $W^q$ $W^k$ 的矩阵学习</p>
+</blockquote>
+</li>
+<li><p>[2] softmax score，全部值归一到 (0,1) 的值中</p>
+</li>
+<li><p>[3] score 和 value 相乘，得到最后的 weights，就是最后的结果</p>
+<blockquote>
+<p>这里使用了简化版本，<strong>没有</strong> $W^v$  的矩阵学习</p>
+</blockquote>
+</li>
+</ol>
+<p><em>运行结果</em>  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">Attention scores:</span></span><br><span class="line"><span class="string"> tensor([[1.0000, 0.0000, 0.5000, 0.5000, 0.7500],</span></span><br><span class="line"><span class="string">        [0.0000, 1.0000, 0.5000, 0.5000, 0.2500],</span></span><br><span class="line"><span class="string">        [0.5000, 0.5000, 1.0000, 0.0000, 0.7500],</span></span><br><span class="line"><span class="string">        [0.5000, 0.5000, 0.0000, 1.0000, 0.2500],</span></span><br><span class="line"><span class="string">        [0.7500, 0.2500, 0.7500, 0.2500, 0.7500]])</span></span><br><span class="line"><span class="string">Attention scores afert softmax:</span></span><br><span class="line"><span class="string"> tensor([[0.2976, 0.1095, 0.1805, 0.1805, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1205, 0.3275, 0.1986, 0.1986, 0.1547],</span></span><br><span class="line"><span class="string">        [0.1805, 0.1805, 0.2976, 0.1095, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1986, 0.1986, 0.1205, 0.3275, 0.1547],</span></span><br><span class="line"><span class="string">        [0.2374, 0.1440, 0.2374, 0.1440, 0.2374]])</span></span><br><span class="line"><span class="string">Attention Weights:</span></span><br><span class="line"><span class="string"> tensor([[0.2976, 0.1095, 0.1805, 0.1805, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1205, 0.3275, 0.1986, 0.1986, 0.1547],</span></span><br><span class="line"><span class="string">        [0.1805, 0.1805, 0.2976, 0.1095, 0.2318],</span></span><br><span class="line"><span class="string">        [0.1986, 0.1986, 0.1205, 0.3275, 0.1547],</span></span><br><span class="line"><span class="string">        [0.2374, 0.1440, 0.2374, 0.1440, 0.2374]])</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/6d9f194c-b314-4af9-bb93-dd782176ad6a_169e0c5f-3757-4035-b6eb-aa505bd920b9.png" alt="image.png"><br>从图上可以看到，注意力的热图，表示每个 token 之间的注意力的关系。 Y 轴是 <code>Query Token</code>，X 轴是 <code>Key Token</code>。图中每一行中越深色的方块，就代表 <code>Query</code> 在这行中的  <code>Key</code> 的得分最高。<br>比如，第一行，<code>query1</code> 对 <code>key1</code>（自己）的颜色最深，说明每个 <code>Token</code> 都应该与自己的关联度高；第 5 行，<code>query5</code> 对 <code>key1</code>，<code>key3</code>，<code>key5</code> 的得分一样且颜色最深，说明 <code>query5</code> 的关联与 <code>key1</code>，<code>key3</code>，<code>key5</code> 相一样。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>Attention 机制</code> 的优势  </p>
+<ol>
+<li>关注你想要的信息，解决了长序列的问题</li>
+<li>可以有多维的角度去理解数据</li>
+<li>其中蕴含了逻辑</li>
+</ol>
+<p><code>Attention 机制</code> 是 <code>Transformer</code> 的基础，所有所有的 <code>NLP</code> 中打开了新的一扇窗。</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><p><a target="_blank" rel="noopener" href="https://zh-v2.d2l.ai/chapter_attention-mechanisms/attention-cues.html#id4">Dive into deep learning</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://oldmanzhang.github.io">小兵张咔咔</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="http://example.com/2024/08/16/[%E5%AD%A6%E8%82%A5AI]%20%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/">http://example.com/2024/08/16/[学肥AI] 手写 Attention 注意力机制 及理解/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%AD%A6%E8%82%A5AI/">学肥AI</a><a class="post-meta__tags" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a><a class="post-meta__tags" href="/tags/Attention/">Attention</a></div><div class="post-share"><div class="social-share" data-image="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/11/07/%5B%E5%AD%A6%E8%82%A5%E5%BE%AE%E4%BF%A1%E5%BC%80%E5%8F%91%5D%20%E5%BE%AE%E4%BF%A1%E4%BA%91%E5%BC%80%E5%8F%91-%E4%BA%91%E5%87%BD%E6%95%B0/" title="微信云开发及云函数"><img class="cover" src="https://images.unsplash.com/photo-1685115755599-c47f5a54db76?q=80&amp;w=2231&amp;auto=format&amp;fit=crop&amp;ixlib=rb-4.0.3&amp;ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">微信云开发及云函数</div></div><div class="info-2"><div class="info-item-1">云开发是什么如果微信小程序是前端，那么后端就是 服务器&#x2F;后端代码运行&#x2F;云存储&#x2F;数据库等，前后端配合才是一个完整的面向服务的程序。 前后端配置，上述是正常的开发的组合。但是后端涉及到很多繁琐的步骤，比如 域名申请&#x2F;域名解析&#x2F;后端代码部署…一系列的问题。等解决好这些问题，时间都耗费了半天了。 微信云开发，就是为了解决上述的问题。在 微信开发者工具 中就可以一键开发 数据库&#x2F;云函数&#x2F;云存储，方便灵活。 相应的网站说明： 云开发 。下面就着 云函数，说明一下。 云函数 hello world 新建一个 云环境，打开 _微信开发者工具_，点击 云开发 按钮。    红色箭头是 envId，后续在代码中用上。暂时先建立一个环境 test。  ❓环境是什么？ 就是用来隔离不同 云函数&#x2F;数据库&#x2F;云存储的 空间。可以想象，不同的环境，就等于不同的房子；不同的房子里面虽然都有 桌子椅子，但是他们都是独立的。   新建目录，cloudfunctions ，是云函数的保存目录。在项目根目录找到...</div></div></div></a><a class="pagination-related" href="/2024/08/13/%5B%E5%AD%A6%E8%82%A5AI%5D%20seq2seq%20%E6%89%8B%E5%B7%A5%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" title="seq2seq 手工实现及原理分析"><img class="cover" src="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3%202.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">seq2seq 手工实现及原理分析</div></div><div class="info-2"><div class="info-item-1">背景问题现实中，有一类问题是 输入输出不定长 的，比如  翻译，从中文到英文 文生图，一段话生成一个图片 摘要，总结一段话的信息  所以 seq2seq 就是为了解决这种 一串序列 生成 另外一串序列 问题的模型。 原理seq2seq，sequence to sequence，也有另外一种叫法 encoder and decoder。他是一种上层模型架构，即是组合模型，他可以由不同的底层模型来实现。 我们可以先看原理图。原理图从原理图中可以知道，seq2seq 模型 有以下的特征：  模型都会有一个 Encoder ，一个 Decoder，和一个 Context Encoder 就是字面意思的 – 编码器，src_input 经过Encoder 处理，输出 Context 中 同理，Decoder 就是解码器，tgt_input 和 Context 经过 Decoder 处理, 输出 tgt_output Encoder 和 Decoder 都必须能够识别 Context src： source， tgt： target    🔥 Context 的组成是非常重要的，他是...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/08/13/%5B%E5%AD%A6%E8%82%A5AI%5D%20seq2seq%20%E6%89%8B%E5%B7%A5%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" title="seq2seq 手工实现及原理分析"><img class="cover" src="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3%202.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-13</div><div class="info-item-2">seq2seq 手工实现及原理分析</div></div><div class="info-2"><div class="info-item-1">背景问题现实中，有一类问题是 输入输出不定长 的，比如  翻译，从中文到英文 文生图，一段话生成一个图片 摘要，总结一段话的信息  所以 seq2seq 就是为了解决这种 一串序列 生成 另外一串序列 问题的模型。 原理seq2seq，sequence to sequence，也有另外一种叫法 encoder and decoder。他是一种上层模型架构，即是组合模型，他可以由不同的底层模型来实现。 我们可以先看原理图。原理图从原理图中可以知道，seq2seq 模型 有以下的特征：  模型都会有一个 Encoder ，一个 Decoder，和一个 Context Encoder 就是字面意思的 – 编码器，src_input 经过Encoder 处理，输出 Context 中 同理，Decoder 就是解码器，tgt_input 和 Context 经过 Decoder 处理, 输出 tgt_output Encoder 和 Decoder 都必须能够识别 Context src： source， tgt： target    🔥 Context 的组成是非常重要的，他是...</div></div></div></a><a class="pagination-related" href="/2024/08/09/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20LSTM%20%E5%92%8C%20GRU%20%E4%B8%94%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" title="手写 LSTM 和 GRU 且原理分析"><img class="cover" src="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B33.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-09</div><div class="info-item-2">手写 LSTM 和 GRU 且原理分析</div></div><div class="info-2"><div class="info-item-1">背景问题RNN 是解决时间序列数据的模型。但是他无法解决时间步过长而无法记住长期信息的这个问题。从而诞生了很多 RNN 的变种模型来解决这些问题。我们今天来看下他们的原理和手写他们的实现。 复杂 RNN常规的 RNN 的逻辑图如下： 代码如下：$h_{t} &#x3D; f(h_{t-1},x_t)$$o_t &#x3D; g(h_t)$  为了解决 传统 RNN 的问题，就有了以下的思路：    在不同的转换过程（每个连线）中增加多 一些轻量级的转换，增加记忆度 加上残差层 增加多更多的输出层，先抽取低维特征，再抽取高维特征的方法  各种的变体的 RNN 的架构图如下： 其中最优秀的两种变体模型就是 LSTM 和 GRU 的模型。下面分别对下面的模型进行介绍。 LSTMLSTM（Long Short-Term Memory）全称 长短期记忆。简单的说，就是记忆分长期和短期的。长期的记忆，可以长时间存活；同理，短期记忆生存时间就比较短。 🔥 RNN 记忆是存在每个时间步的隐状态中的，随着时间的推移，会“遗忘”时间长的隐状态，即权重逐步减少； LSTM 就是...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/assets/avator.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">小兵张咔咔</div><div class="author-info-description">find your own fun!</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/xxxxx" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:xxxxxx@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E9%97%AE%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">背景问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Attention-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.</span> <span class="toc-text">Attention 是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%A6%82%E5%BF%B5%E8%AE%B2%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">分概念讲解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#QKV-%E6%9C%BA%E5%88%B6"><span class="toc-number">3.1.</span> <span class="toc-text">QKV 机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="toc-number">3.2.</span> <span class="toc-text">多头注意力机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="toc-number">3.3.</span> <span class="toc-text">自注意力机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E5%8A%9B%E5%BE%97%E5%88%86%E4%BB%A3%E7%A0%81%E9%83%A8%E5%88%86"><span class="toc-number">3.4.</span> <span class="toc-text">注意力得分代码部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BE%8B%E5%AD%90%E8%AF%B4%E6%98%8E"><span class="toc-number">3.5.</span> <span class="toc-text">例子说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E7%94%A8"><span class="toc-number">5.</span> <span class="toc-text">引用</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/11/07/%5B%E5%AD%A6%E8%82%A5%E5%BE%AE%E4%BF%A1%E5%BC%80%E5%8F%91%5D%20%E5%BE%AE%E4%BF%A1%E4%BA%91%E5%BC%80%E5%8F%91-%E4%BA%91%E5%87%BD%E6%95%B0/" title="微信云开发及云函数"><img src="https://images.unsplash.com/photo-1685115755599-c47f5a54db76?q=80&amp;w=2231&amp;auto=format&amp;fit=crop&amp;ixlib=rb-4.0.3&amp;ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="微信云开发及云函数"/></a><div class="content"><a class="title" href="/2024/11/07/%5B%E5%AD%A6%E8%82%A5%E5%BE%AE%E4%BF%A1%E5%BC%80%E5%8F%91%5D%20%E5%BE%AE%E4%BF%A1%E4%BA%91%E5%BC%80%E5%8F%91-%E4%BA%91%E5%87%BD%E6%95%B0/" title="微信云开发及云函数">微信云开发及云函数</a><time datetime="2024-11-07T02:18:38.000Z" title="Created 2024-11-07 10:18:38">2024-11-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/16/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/" title="手写 Attention 注意力机制 及理解"><img src="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手写 Attention 注意力机制 及理解"/></a><div class="content"><a class="title" href="/2024/08/16/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/" title="手写 Attention 注意力机制 及理解">手写 Attention 注意力机制 及理解</a><time datetime="2024-08-16T02:18:38.000Z" title="Created 2024-08-16 10:18:38">2024-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/13/%5B%E5%AD%A6%E8%82%A5AI%5D%20seq2seq%20%E6%89%8B%E5%B7%A5%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" title="seq2seq 手工实现及原理分析"><img src="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B3%202.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="seq2seq 手工实现及原理分析"/></a><div class="content"><a class="title" href="/2024/08/13/%5B%E5%AD%A6%E8%82%A5AI%5D%20seq2seq%20%E6%89%8B%E5%B7%A5%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" title="seq2seq 手工实现及原理分析">seq2seq 手工实现及原理分析</a><time datetime="2024-08-13T02:18:38.000Z" title="Created 2024-08-13 10:18:38">2024-08-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/09/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20LSTM%20%E5%92%8C%20GRU%20%E4%B8%94%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" title="手写 LSTM 和 GRU 且原理分析"><img src="https://qiniu.oldzhangtech.com/cover/%E5%A4%A7%E8%B0%B7%E7%BF%94%E5%B9%B33.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手写 LSTM 和 GRU 且原理分析"/></a><div class="content"><a class="title" href="/2024/08/09/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20LSTM%20%E5%92%8C%20GRU%20%E4%B8%94%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" title="手写 LSTM 和 GRU 且原理分析">手写 LSTM 和 GRU 且原理分析</a><time datetime="2024-08-09T02:18:38.000Z" title="Created 2024-08-09 10:18:38">2024-08-09</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By 小兵张咔咔</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">去到底线，都是希望你是开心的 🤗🤗</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="Search for Posts" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
