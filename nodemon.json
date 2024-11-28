@@ -1,0 +1,1 @@
+{ "watch": [ "_config.yml", "_config.butterfly.yml", "source/", "themes/"] }
