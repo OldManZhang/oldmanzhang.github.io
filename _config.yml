@@ -3,13 +3,14 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle: ''
-description: ''
+title: 做人最紧要是开心
+subtitle: 'What is funny?!'
+description: 'Older u r, funnier u r'
 keywords:
-author: John Doe
+author: 小兵张咔咔
 language: en
-timezone: ''
+timezone: 'Asia/Shanghai'
+
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
@@ -96,7 +97,9 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: butterfly
+
+baidu_analytics: b6a6129dfbba628ffe4ced425d43d1f6
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
@@ -105,3 +108,13 @@ deploy:
   #repo: git@gitee.com:oldmanzhang/blogs.git
   repo: git@github.com:OldManZhang/oldmanzhang.github.io.git
   branch: master
+
+runtimeshow:
+  enable: true
+  publish_date: 10/1/2024 00:00:00
+
+server:
+  watch:
+    - _config.yml
+    - _config.butterfly.yml
+    - source/
