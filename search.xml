@@ -388,8 +388,8 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2025/02/05/%5B%E5%AD%A6%E8%82%A5AI%5D%20CNN%E7%9A%84%E7%90%86%E8%A7%A3/</url>
+    <title>CNN 的理解</title>
+    <url>/2024/07/26/%5B%E5%AD%A6%E8%82%A5AI%5D%20CNN%E7%9A%84%E7%90%86%E8%A7%A3/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>有时候，我们会使用深度神经网络来学习数据。如果效果不理想，常常都会 <strong>加深和加宽全连接层</strong> 来让效果更加的完善。但是加深加宽网络会引来更加多的问题，比如 梯度消失&#x2F;梯度爆炸 等。<br>特别是面对图像识别问题的时候，比如手写数字识别，一幅图片本来就有大量的信息，<code>width</code>&#x2F;<code>height</code>&#x2F;<code>3 color channels </code>等，加深加宽网络下的模型，结果往往未如理想。<br><code>CNN</code> 就是为了解决上述的问题的。<code>CNN</code> 即是 <code>Convolution Neural Network</code>，卷积神经网络。</p>
 <blockquote>
 <p>先讲解不同的子组件，再组合起来，形成手写的模型，这样就更加容易的去理解模型。</p>
@@ -475,10 +475,20 @@
 <li>特别图像识别</li>
 </ol>
 ]]></content>
+      <categories>
+        <category>学肥AI</category>
+      </categories>
+      <tags>
+        <tag>学肥AI</tag>
+        <tag>深度学习</tag>
+        <tag>CNN</tag>
+        <tag>NN</tag>
+        <tag>卷积神经网络</tag>
+      </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2025/02/05/%5B%E5%AD%A6%E8%82%A5AI%5D%20CNN%20%E4%B8%80%E4%BA%9B%E4%BE%8B%E5%AD%90-%E5%85%B6%E4%B8%AD%E5%8C%85%E6%8B%AC%20LeNet/</url>
+    <title>CNN 一些例子-其中包括 LeNet</title>
+    <url>/2024/08/02/%5B%E5%AD%A6%E8%82%A5AI%5D%20CNN%20%E4%B8%80%E4%BA%9B%E4%BE%8B%E5%AD%90-%E5%85%B6%E4%B8%AD%E5%8C%85%E6%8B%AC%20LeNet/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>前文中已经对 CNN 组件 以及整体的数据流动有了解，有需要的可以翻看之前的<a href="https://blog.csdn.net/weixin_49113487/article/details/140717493?spm=1001.2014.3001.5501">文章</a>，后面我们直接应用 CNN 来解决实际问题，动手操作才是学习的根本。</p>
 <p>本篇的所有的例子，详细的 <code>ipynb</code> 都可以从下面链接中找到。 NNvsCNN <a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/cnn_compareNN.ipynb">ipynb 链接</a>，识别图形 <a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/cnn_classify_triangleCycleRectangle.ipynb">ipynb 链接</a>。</p>
 <h2 id="NN-vs-CNN"><a href="#NN-vs-CNN" class="headerlink" title="NN vs CNN"></a>NN vs CNN</h2><p>本例子的目的是：同样面对 <code>mnist</code> 手写数字数据集的时候，对比 使用 <code>NN</code> 和 使用 <code>CNN</code> ，看一下他们表现的差异。可运行文件 <code>ipynb</code> 的<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/cnn_compareNN.ipynb">链接</a>。</p>
@@ -523,10 +533,19 @@
 <p><img src="https://qiniu.oldzhangtech.com/mdpic/03db3b3d-0d90-4dac-9888-fcf3f9c809c2_39713376-9e7f-4693-93da-b60856f1a06f.png" alt="image.png"></p>
 <h2 id="NOTE"><a href="#NOTE" class="headerlink" title="NOTE"></a>NOTE</h2><p><code>CNN</code> 是一种有效的 <code>解决空间</code> 信息的深度学习网络，特别适用于图像问题的解决中。</p>
 ]]></content>
+      <categories>
+        <category>学肥AI</category>
+      </categories>
+      <tags>
+        <tag>学肥AI</tag>
+        <tag>深度学习</tag>
+        <tag>CNN</tag>
+        <tag>LeNet</tag>
+      </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2025/02/05/%5B%E8%82%A5%E7%94%A8%E4%BA%91%E8%AE%A1%E7%AE%97%5D%20Serverless%E5%AE%89%E8%A3%85%E7%AC%AC%E4%B8%89%E6%96%B9package%E5%B9%B6%E6%9E%84%E5%BB%BAlayer/</url>
+    <title>Serverless安装第三方package并构建layer</title>
+    <url>/2024/12/09/%5B%E8%82%A5%E7%94%A8%E4%BA%91%E8%AE%A1%E7%AE%97%5D%20Serverless%E5%AE%89%E8%A3%85%E7%AC%AC%E4%B8%89%E6%96%B9package%E5%B9%B6%E6%9E%84%E5%BB%BAlayer/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面介绍的都没有进行额外的 package 安装的过程，所以本章就重点是 如何在 serverless 中安装第三方的 packag 和 如何去构建 layer 使得 package 可以复用。</p>
 <blockquote>
 <p>下面是后续所有例子需求：</p>
@@ -594,10 +613,16 @@
 <li><a href="https://github.com/devsapp/start-fc?spm=5176.fcnext.0.0.18e978c8K4qMDn">start-fc-template</a></li>
 </ol>
 ]]></content>
+      <categories>
+        <category>肥用云计算</category>
+      </categories>
+      <tags>
+        <tag>serverless</tag>
+      </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2025/02/05/%5B%E5%AD%A6%E8%82%A5AI%5D%20RNN%20%E7%9A%84%E5%9F%BA%E7%A1%80/</url>
+    <title>RNN 的基础</title>
+    <url>/2024/08/06/%5B%E5%AD%A6%E8%82%A5AI%5D%20RNN%20%E7%9A%84%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>我们有时候需要处理一些 _时间序列数据_，比如 股票预测，天气预测，根据前面单词预测后续一个单词等场景。NN（Neural Network） 在处理这些问题，有他的局限性。RNN （Recurrent Neural Network），就是为了用于处理这些问题。</p>
 <h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>一句话：能够记住前 X 步，离当前时间越近的，越记得深刻，即越能影响当前步的输出。</p>
 <p>里面有几层意思：</p>
@@ -684,5 +709,16 @@
 <li>计算效率相对比较低</li>
 </ol>
 <h2 id="-1"><a href="#-1" class="headerlink" title=""></a></h2>]]></content>
+      <categories>
+        <category>学肥AI</category>
+      </categories>
+      <tags>
+        <tag>学肥AI</tag>
+        <tag>深度学习</tag>
+        <tag>CNN</tag>
+        <tag>NN</tag>
+        <tag>卷积神经网络</tag>
+        <tag>RNN</tag>
+      </tags>
   </entry>
 </search>
