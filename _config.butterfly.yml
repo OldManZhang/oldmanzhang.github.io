@@ -10,7 +10,7 @@
 # --------------------------------------
 
 nav:
-  logo: /assets/avator.png
+  logo: /assets/avator-light.500.side.png
   display_title: false
   fixed: true # fixed navigation bar    
 post_asset_folder: true
@@ -21,8 +21,8 @@ menu:
   时间轴: /archives/ || fas fa-archive
   标签: /tags/ || fas fa-tags
   分类: /categories/ || fas fa-folder-open
-  友鏈: /link/ || fas fa-link
-  關於: /about/ || fas fa-heart
+  友链: /link/ || fas fa-link
+  关于: /about/ || fas fa-heart
   # 清单||fa fa-heartbeat:
   #   音乐: /music/ || fas fa-music
   #   照片: /Gallery/ || fas fa-images
@@ -53,17 +53,17 @@ code_blocks:
 # Formal:
 #   icon: link || the description || color
 social:
-  fab fa-github: https://github.com/xxxxx || Github || '#24292e'
-  fas fa-envelope: mailto:xxxxxx@gmail.com || Email || '#4a7dbe'
+  fab fa-github: https://github.com/OldManZhang || Github || '#24292e'
+  fas fa-envelope: mailto:old_man_zhang@163.com || Email || '#4a7dbe'
 
 # --------------------------------------
 # Image Settings
 # --------------------------------------
 
-favicon: /assets/avator.png
+favicon: /assets/avator-light.500.side.png
 
 avatar:
-  img: /assets/avator.png
+  img: /assets/avator-light.500.side.png
   effect: false
 
 # Disable all banner images
@@ -95,11 +95,11 @@ category_img: https://images.unsplash.com/photo-1691441131483-7901e11ba084?q=80&
 category_per_img:
 
 # The background image of footer
-footer_img: false
+footer_img: transparent
 
 # Website Background
 # Can set it to color or image url
-background: '#49B202'
+background: '#cccccc'
 
 cover:
   # Disable the cover or not
@@ -109,6 +109,7 @@ cover:
   # When cover is not set, the default cover is displayed
   default_cover:
     # - xxx.jpg
+     - https://images.unsplash.com/photo-1661276983222-e737ed7693ad?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
 
 # Replace Broken Images
 error_img:
@@ -155,7 +156,7 @@ index_top_img_height:
 
 # The subtitle on homepage
 subtitle:
-  enable: false
+  enable: true
   # Typewriter Effect
   effect: true
   # Customize typed.js
@@ -180,7 +181,7 @@ subtitle:
 # 5: Info displayed on the cover
 # 6: Masonry layout - Cover on top, info on the bottom
 # 7: Masonry layout - Info displayed on the cover
-index_layout: 3
+index_layout: 1
 
 # Display the article introduction on homepage
 # 1: description
@@ -207,8 +208,8 @@ toc:
 
 post_copyright:
   enable: true
-  decode: false
-  author_href:
+  decode: true
+  author_href: https://oldmanzhang.github.io
   license: CC BY-NC-SA 4.0
   license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
@@ -217,9 +218,9 @@ reward:
   enable: false
   text:
   QR_code:
-    # - img: /img/wechat.jpg
-    #   link:
-    #   text: wechat
+    - img: /img/wechat.jpg
+      link:
+      text: wechat
     # - img: /img/alipay.jpg
     #   link:
     #   text: alipay
@@ -264,8 +265,8 @@ noticeOutdate:
 footer:
   owner:
     enable: true
-    since: 2019
-  custom_text:
+    since: 2020
+  custom_text: 去到底线，都是希望你是开心的 🤗🤗
   # Copyright of theme and framework
   copyright: true
 
@@ -292,12 +293,12 @@ aside:
       enable: true
       icon: fab fa-github
       text: Follow Me
-      link: https://github.com/xxxxxx
+      link: https://github.com/OldManZhang
   card_announcement:
     enable: true
-    content: This is my Blog
+    content: welcome to my funny blog
   card_recent_post:
-    enable: true
+    enable: false
     # If set 0 will show all
     limit: 5
     # Sort: date / updated
@@ -1039,7 +1040,7 @@ css_prefix: true
 # Insert the code to head (before '</head>' tag) and the bottom (before '</body>' tag)
 inject:
   head:
-    # - <link rel="stylesheet" href="/xxx.css">
+    - <link rel="stylesheet" href="/css/inject.css">
   bottom:
     # - <script src="xxxx"></script>
 
