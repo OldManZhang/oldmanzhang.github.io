@@ -2,7 +2,7 @@
 <search>
   <entry>
     <title>CNN 一些例子-其中包括 LeNet</title>
-    <url>/2024/08/02/CNN%20%E4%B8%80%E4%BA%9B%E4%BE%8B%E5%AD%90-%E5%85%B6%E4%B8%AD%E5%8C%85%E6%8B%AC%20LeNet/</url>
+    <url>/2024/08/02/%5B%E5%AD%A6%E8%82%A5AI%5D%20CNN%20%E4%B8%80%E4%BA%9B%E4%BE%8B%E5%AD%90-%E5%85%B6%E4%B8%AD%E5%8C%85%E6%8B%AC%20LeNet/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>前文中已经对 CNN 组件 以及整体的数据流动有了解，有需要的可以翻看之前的<a href="https://blog.csdn.net/weixin_49113487/article/details/140717493?spm=1001.2014.3001.5501">文章</a>，后面我们直接应用 CNN 来解决实际问题，动手操作才是学习的根本。</p>
 <p>本篇的所有的例子，详细的 <code>ipynb</code> 都可以从下面链接中找到。 NNvsCNN <a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/cnn_compareNN.ipynb">ipynb 链接</a>，识别图形 <a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/cnn_classify_triangleCycleRectangle.ipynb">ipynb 链接</a>。</p>
 <h2 id="NN-vs-CNN"><a href="#NN-vs-CNN" class="headerlink" title="NN vs CNN"></a>NN vs CNN</h2><p>本例子的目的是：同样面对 <code>mnist</code> 手写数字数据集的时候，对比 使用 <code>NN</code> 和 使用 <code>CNN</code> ，看一下他们表现的差异。可运行文件 <code>ipynb</code> 的<a href="https://gitee.com/oldmanzhang/resource_machine_learning/blob/master/deep_learning/cnn_compareNN.ipynb">链接</a>。</p>
@@ -59,7 +59,7 @@
   </entry>
   <entry>
     <title>CNN 的理解</title>
-    <url>/2024/07/26/CNN%E7%9A%84%E7%90%86%E8%A7%A3/</url>
+    <url>/2024/07/26/%5B%E5%AD%A6%E8%82%A5AI%5D%20CNN%E7%9A%84%E7%90%86%E8%A7%A3/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>有时候，我们会使用深度神经网络来学习数据。如果效果不理想，常常都会 <strong>加深和加宽全连接层</strong> 来让效果更加的完善。但是加深加宽网络会引来更加多的问题，比如 梯度消失&#x2F;梯度爆炸 等。<br>特别是面对图像识别问题的时候，比如手写数字识别，一幅图片本来就有大量的信息，<code>width</code>&#x2F;<code>height</code>&#x2F;<code>3 color channels </code>等，加深加宽网络下的模型，结果往往未如理想。<br><code>CNN</code> 就是为了解决上述的问题的。<code>CNN</code> 即是 <code>Convolution Neural Network</code>，卷积神经网络。</p>
 <blockquote>
 <p>先讲解不同的子组件，再组合起来，形成手写的模型，这样就更加容易的去理解模型。</p>
@@ -157,85 +157,8 @@
       </tags>
   </entry>
   <entry>
-    <title>Serverless安装第三方package并构建layer</title>
-    <url>/2024/12/09/Serverless%E5%AE%89%E8%A3%85%E7%AC%AC%E4%B8%89%E6%96%B9package%E5%B9%B6%E6%9E%84%E5%BB%BAlayer/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面介绍的都没有进行额外的 package 安装的过程，所以本章就重点是 如何在 serverless 中安装第三方的 packag 和 如何去构建 layer 使得 package 可以复用。</p>
-<blockquote>
-<p>下面是后续所有例子需求：</p>
-<ol>
-<li>安装 emoji package，且运行</li>
-</ol>
-</blockquote>
-<h2 id="安装方式：package-安装在本地"><a href="#安装方式：package-安装在本地" class="headerlink" title="安装方式：package 安装在本地"></a>安装方式：package 安装在本地</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">s init start-fc3-python -d demo1</span><br><span class="line">cd demo1</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装依赖</span></span><br><span class="line">touch code/requirements.txt</span><br><span class="line">echo &quot;emoji==2.0.0&quot; &gt; code/requirements.txt</span><br><span class="line">pip3 install -r code/requirements.txt -t ./code</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>emoji package 就会安装在 local 的 code 文件夹中</p>
-<p>修改 <code>code/index.py</code></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># @code/index.py</span></span><br><span class="line"><span class="keyword">from</span> emoji <span class="keyword">import</span> emojize</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">handler</span>(<span class="params">event, context</span>):</span><br><span class="line">    <span class="keyword">return</span> emojize(<span class="string">&quot;:thumbs_up:&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<p>部署代码</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">本地测试</span></span><br><span class="line">s local invoke</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">部署到远端</span></span><br><span class="line">s deploy</span><br></pre></td></tr></table></figure>
-
-
-
-<p>当然部署也是可以上传代码的方式，如下图，其效果是一样的。</p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/7d8a2d84-885d-41b9-9176-1e453fbbf978_0a9076aa-14b3-429c-b353-b8a17a50d60c.png"></p>
-<p><em><strong>结果：</strong></em></p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/bef8d5d1-00c5-41fe-9602-c53a43c0087b_83dd9e42-6950-4625-bc3c-20b18fef455d.png"></p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/d8ef8640-9b24-4ea9-9f98-018a77c1a333_662dc12b-8977-4705-97a5-ec7bcc63533f.png"></p>
-<p>结果满足预期，但是他会把 emoji package 和 index.py 一起上传了。所以从代码大小中得知，整体会比较大。</p>
-<h2 id="安装方式：构建-layer"><a href="#安装方式：构建-layer" class="headerlink" title="安装方式：构建 layer"></a>安装方式：构建 layer</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">s init start-fc3-python -d demo2</span><br><span class="line">cd demo2</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装依赖</span></span><br><span class="line">touch code/requirements.txt</span><br><span class="line">echo &quot;emoji==2.0.0&quot; &gt; code/requirements.txt</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>修改 code&#x2F;index.py</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># @code/index.py</span></span><br><span class="line"><span class="keyword">from</span> emoji <span class="keyword">import</span> emojize</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">handler</span>(<span class="params">event, context</span>):</span><br><span class="line">    <span class="keyword">return</span> emojize(<span class="string">&quot;:thumbs_up:&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<p>关键代码来了，<strong>构建 layer，并且上传 layer。</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">s build --publish-layer</span><br><span class="line"></span><br><span class="line">[2024-12-09 18:00:12][INFO][hello_world] You need to add a new configuration env configuration dependency in yaml to take effect. The configuration is as follows:</span><br><span class="line">environmentVariables:</span><br><span class="line">  PYTHONPATH: /opt/python</span><br><span class="line">  </span><br><span class="line">layers:</span><br><span class="line">  - acs:fc:cn-shenzhen:1719759326012690:layers/demo2-layer/versions/1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>构建成功后，提示说在 s.yaml 中添加上 environmentVariables 和 layers 节点。</p>
-<p>💡 构建 layer 的意思就是把 requirements package 都构建一层 image layer 且上传到云端，后续的代码就是基于这层，不用另外的安装代码。如果有其他的项目想复用这些 package，直接改 s.yaml 的 layer 节点就可以了。</p>
-<p>⚠️ 记得要把 requirements.txt 的文件要放在 和 index.py 的同级目录下。</p>
-<p>所以往 s.yaml 里面写入上述的信息。</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">props:</span></span><br><span class="line">      <span class="string">...</span></span><br><span class="line">      <span class="attr">environmentVariables:</span></span><br><span class="line">        <span class="attr">PYTHONPATH:</span> <span class="string">/opt/python</span></span><br><span class="line">      <span class="attr">layers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">acs:fc:cn-shenzhen:1719759326012690:layers/demo2-layer/versions/1</span></span><br></pre></td></tr></table></figure>
-
-
-
-<p>部署代码</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">本地测试</span></span><br><span class="line">s local invoke</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">部署到远端</span></span><br><span class="line">s deploy</span><br></pre></td></tr></table></figure>
-
-<p><em>****</em></p>
-<p><em><strong>结果：</strong></em></p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/3182e155-8a24-4d6e-80bf-72c8890ebdf5_e3de1325-4c7c-4b4f-8ce5-cc6c9d2bb8a4.png"></p>
-<p>因为不会上传 emoji package，代码明显是小了很多。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
-<li>serverless 就是 业务 和 trigger 隔离开来，本文章例子中都是完成 业务，没有 trigger；只要后续补充上 trigger，这个业务就可以串通了。</li>
-<li>部署方式，优先是构建 layer，后上传代码，因为 layer 可以复用，且减少项目的代码。</li>
-<li>如果开发&#x2F;本地测试&#x2F;部署，可以遵循下面的方法：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">初始化</span></span><br><span class="line">s init start-fc3-python -d demo2</span><br><span class="line">cd demo2</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装依赖</span></span><br><span class="line">touch code/requirements.txt</span><br><span class="line">echo &quot;emoji==2.0.0&quot; &gt; code/requirements.txt</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">本地测试</span></span><br><span class="line">s local invoke</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建 layer</span></span><br><span class="line">s build --publish-layer</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">部署</span></span><br><span class="line">s deploy</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="资料"><a href="#资料" class="headerlink" title="资料"></a>资料</h2><ol>
-<li><a href="https://gitee.com/oldmanzhang/practice_serverlsess/tree/master/p03">源代码</a></li>
-<li><a href="https://help.aliyun.com/zh/functioncompute/fc-3-0/user-guide/request-handlers?spm=a2c4g.11186623.4.2.72757bbcKfadgi&scm=20140722.H_2512964._.ID_2512964-OR_rec-V_1">阿里云 serverless 说明</a></li>
-<li><a href="https://manual.serverless-devs.com/user-guide/aliyun/fc3/build/">Serverless Devs Docs</a></li>
-<li><a href="https://github.com/devsapp/start-fc?spm=5176.fcnext.0.0.18e978c8K4qMDn">start-fc-template</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>肥用云计算</category>
-      </categories>
-      <tags>
-        <tag>serverless</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>RNN 的基础</title>
-    <url>/2024/08/06/RNN%20%E7%9A%84%E5%9F%BA%E7%A1%80/</url>
+    <url>/2024/08/06/%5B%E5%AD%A6%E8%82%A5AI%5D%20RNN%20%E7%9A%84%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>我们有时候需要处理一些 _时间序列数据_，比如 股票预测，天气预测，根据前面单词预测后续一个单词等场景。NN（Neural Network） 在处理这些问题，有他的局限性。RNN （Recurrent Neural Network），就是为了用于处理这些问题。</p>
 <h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>一句话：能够记住前 X 步，离当前时间越近的，越记得深刻，即越能影响当前步的输出。</p>
 <p>里面有几层意思：</p>
@@ -335,97 +258,8 @@
       </tags>
   </entry>
   <entry>
-    <title>微信云开发及云函数</title>
-    <url>/2024/11/07/%E5%BE%AE%E4%BF%A1%E4%BA%91%E5%BC%80%E5%8F%91-%E4%BA%91%E5%87%BD%E6%95%B0/</url>
-    <content><![CDATA[<h2 id="云开发是什么"><a href="#云开发是什么" class="headerlink" title="云开发是什么"></a>云开发是什么</h2><p>如果微信小程序是前端，那么后端就是 服务器&#x2F;后端代码运行&#x2F;云存储&#x2F;数据库等，前后端配合才是一个完整的面向服务的程序。</p>
-<p>前后端配置，上述是正常的开发的组合。但是后端涉及到很多繁琐的步骤，比如 域名申请&#x2F;域名解析&#x2F;后端代码部署…一系列的问题。等解决好这些问题，时间都耗费了半天了。</p>
-<p>微信云开发，就是为了解决上述的问题。在 <strong>微信开发者工具</strong> 中就可以一键开发 <strong>数据库&#x2F;云函数&#x2F;云存储</strong>，方便灵活。</p>
-<p>相应的网站说明： <a href="https://developers.weixin.qq.com/miniprogram/dev/wxcloudservice/wxcloud/guide/init.html">云开发 </a>。下面就着 云函数，说明一下。</p>
-<h2 id="云函数-hello-world"><a href="#云函数-hello-world" class="headerlink" title="云函数 hello world"></a>云函数 hello world</h2><ol>
-<li>新建一个 <strong>云环境</strong>，打开 _微信开发者工具_，点击 <em>云开发</em> 按钮。</li>
-</ol>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/a3303d65-ae28-4a4a-b024-d00ad6ff4095_ff179b1c-7af2-4c3e-90a7-90529e880779.png"></p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/55118c6e-7dd0-4378-aaad-398c8fa4f6f9_d3cdcadd-4568-4b51-81ad-2d66fe249616.png"></p>
-<p>红色箭头是 <code>envId</code>，后续在代码中用上。暂时先建立一个环境 <code>test</code>。</p>
-<blockquote>
-<p>❓环境是什么？</p>
-<p>就是用来隔离不同 云函数&#x2F;数据库&#x2F;云存储的 空间。可以想象，不同的环境，就等于不同的房子；不同的房子里面虽然都有 桌子椅子，但是他们都是独立的。</p>
-</blockquote>
-<ol start="2">
-<li>新建目录，<code>cloudfunctions</code> ，是云函数的保存目录。在项目根目录找到 <code>project.config.json</code> 文件，新增 <code>cloudfunctionRoot</code> 字段，<code>value</code> 就是 <code>cloudfunctions</code>。</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   <span class="string">&quot;cloudfunctionRoot&quot;</span>: <span class="string">&quot;cloudfunctions/&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在 <strong>新建的目录</strong> 上要选择你要在 <code>哪个环境</code> 中进行开发云函数，比如下图，选择了 新建的 <code>test</code> 环境。</p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/5bed85c0-d45a-4bc6-84b7-4b3601f05b1d_678f3efa-eef6-4d5d-94a6-f9f2acf75f09.png"></p>
-<ol start="3">
-<li>创建云函数，在 <code>cloudfunctions</code> 目录 右键，点击 【新建 node.js 云函数】，名字叫 <code>add</code>。</li>
-</ol>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/1e29e888-7ffc-4c8e-ad45-9211e11c3688_6c840fc5-13f7-4e5e-b1c0-257e5525e4c3.png"></p>
-<p>add 目录下 增加多 3 个文件</p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/b062fd6a-be83-4b1f-adaa-abc4b1c445aa_55aae544-8c59-4f95-8fee-fa139fc5b325.png"></p>
-<ol start="4">
-<li>修改 <code>add/index.js</code> ，全文替换成下面的代码。</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 云函数入口函数</span></span><br><span class="line"><span class="built_in">exports</span>.<span class="property">main</span> = <span class="title function_">async</span> (event, context) =&gt; &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">sum</span>: event.<span class="property">a</span> + event.<span class="property">b</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="5">
-<li>修改 <code>package.json</code>， 删除 <code>dependencies</code> 里面的值，类似的代码如下</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;dependencies&quot;</span>: &#123;</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="6">
-<li>上传函数，变成 <code>云</code></li>
-</ol>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/8677fd70-f4e7-48dc-8151-500ce61fc6c5_2e030105-4f2e-4076-9e42-aa5d749a7d49.png"></p>
-<blockquote>
-<p>如果，有以下的情况</p>
-<ol>
-<li><code>index.js</code> 中 <strong>没有</strong> <code>const cloud = require(&#39;wx-server-sdk&#39;)</code> 代码</li>
-<li><code>package.json</code> 的 <code>dependencies</code> 字段 没有值</li>
-</ol>
-<p>就可以  点击【上传并部署: 所有文件】菜单，比如 本例。</p>
-<p>如果有上述的情况，就可以  点击【上传并部署: 云端安装依赖】菜单。</p>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/beccdf18-d285-4e40-a6f3-1ab02736ce83_c349e39c-ec34-4d3a-9292-92cbc54a50e9.png"></p>
-</blockquote>
-<blockquote>
-<p>💡 ‘wx-server-sdk’ 的安装，是为了 云函数中可以 调用 <strong>数据库</strong> 和 <strong>云存储</strong>。如果你在微信小程序中是直接 调用 数据库 和 云存储，就没有必要在 云函数 中倒一倒了。</p>
-</blockquote>
-<ol start="7">
-<li>调试云函数，在 <strong>开发者工具</strong> 就可以调试刚刚上传的云函数</li>
-</ol>
-<p><img src="https://qiniu.oldzhangtech.com/mdpic/1ae346b2-e450-4d10-b42a-c05843452c69_385b46fd-7871-4826-8fb7-348178fcd442.png"></p>
-<ol start="8">
-<li>小程序中调用 云函数 add</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">wx.<span class="property">cloud</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">      <span class="attr">env</span>: <span class="string">&#x27;test-safjlfjasdfasf&#x27;</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">wx.<span class="property">cloud</span>.<span class="title function_">callFunction</span>(&#123;</span><br><span class="line">      <span class="comment">// 云函数名称</span></span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;add&#x27;</span>,</span><br><span class="line">      <span class="comment">// 传给云函数的参数</span></span><br><span class="line">      <span class="attr">data</span>: &#123;</span><br><span class="line">        <span class="attr">a</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="attr">b</span>: <span class="number">2</span>,</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">success</span>: <span class="keyword">function</span>(<span class="params">res</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(res.<span class="property">result</span>.<span class="property">sum</span>) <span class="comment">// 3</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">fail</span>: <span class="variable language_">console</span>.<span class="property">error</span></span><br><span class="line">    &#125;)</span><br></pre></td></tr></table></figure>
-
-
-
-<ol start="9">
-<li>撒花</li>
-</ol>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><em>微信云开发</em> 开发 _云函数_，可以在一个工具里面同时开发前端和后端的代码，减少繁琐的步骤，加快开发的效率。</p>
-]]></content>
-      <categories>
-        <category>微信云开发</category>
-      </categories>
-      <tags>
-        <tag>微信</tag>
-        <tag>微信云开发</tag>
-        <tag>云开发</tag>
-        <tag>云函数</tag>
-        <tag>云数据库</tag>
-        <tag>云存储</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>seq2seq 手工实现及原理分析</title>
-    <url>/2024/08/13/seq2seq%20%E6%89%8B%E5%B7%A5%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
+    <url>/2024/08/13/%5B%E5%AD%A6%E8%82%A5AI%5D%20seq2seq%20%E6%89%8B%E5%B7%A5%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p>现实中，有一类问题是 <strong>输入输出不定长</strong> 的，比如</p>
 <ol>
 <li>翻译，从中文到英文</li>
@@ -543,7 +377,7 @@
   </entry>
   <entry>
     <title>手写 Attention 注意力机制 及理解</title>
-    <url>/2024/08/16/%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/</url>
+    <url>/2024/08/16/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20Attention%20%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20%E5%8F%8A%E7%90%86%E8%A7%A3/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p><code>RNN</code> 和 各种变体 <code>RNN</code> 中 <code>LSTM</code>&#x2F;<code>GRU</code> 都存在一个问题，就是如何解决 长距离信息的感知。<code>RNN</code> 的解决办法是加大 <code>sequence</code>，更长的窗口记得更加久远的信息；<code>LSTM</code> 和 <code>GRU</code> 就是把记忆设置成不同的权重，对重要的信息加大权重。<code>Attention</code> 又是另外一个角度，去解决这个问题。</p>
 <h2 id="Attention-是什么"><a href="#Attention-是什么" class="headerlink" title="Attention 是什么"></a>Attention 是什么</h2><p><code>Attention</code> 中文是注意力机制，是对某个事物的某部分的关注点。</p>
 <p>从人脑的角度想，时间和资源都是有限的，所以只能在一定的限度内去关注某些部分。比如看到一群人的照片，我们自然去找美女；看一个美女的照片，我们自然去看美女的眼睛。我们为什么会不自主的去看这些部分而不是看全景呢？因为我们的注意力资源是有限的，我们只对关注点高的部分感兴趣。<br>这是属于在我们人脑里面的注意力机制。<br>从模型的角度想，用数学将他们建模，他们应该是注意力得分最高的部分，也就是模型可以重点关注的地方。</p>
@@ -634,7 +468,7 @@
   </entry>
   <entry>
     <title>手写 LSTM 和 GRU 且原理分析</title>
-    <url>/2024/08/09/%E6%89%8B%E5%86%99%20LSTM%20%E5%92%8C%20GRU%20%E4%B8%94%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
+    <url>/2024/08/09/%5B%E5%AD%A6%E8%82%A5AI%5D%20%E6%89%8B%E5%86%99%20LSTM%20%E5%92%8C%20GRU%20%E4%B8%94%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<h2 id="背景问题"><a href="#背景问题" class="headerlink" title="背景问题"></a>背景问题</h2><p><code>RNN</code> 是解决时间序列数据的模型。但是他无法解决时间步过长而无法记住长期信息的这个问题。从而诞生了很多 <code>RNN</code> 的变种模型来解决这些问题。我们今天来看下他们的原理和手写他们的实现。</p>
 <h2 id="复杂-RNN"><a href="#复杂-RNN" class="headerlink" title="复杂 RNN"></a>复杂 RNN</h2><p>常规的 <code>RNN</code> 的逻辑图如下：<br><img src="https://qiniu.oldzhangtech.com/mdpic/95f069d6-06bc-4df6-bbc8-89dc1ab54513_145485d3-8e45-4726-b6e8-fcf46df277fa.jpeg"></p>
 <p>代码如下：<br>$h_{t} &#x3D; f(h_{t-1},x_t)$<br>$o_t &#x3D; g(h_t)$ </p>
@@ -719,6 +553,172 @@
         <tag>深度学习</tag>
         <tag>LSTM</tag>
         <tag>GRU</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>微信云开发及云函数</title>
+    <url>/2024/11/07/%5B%E5%AD%A6%E8%82%A5%E5%BE%AE%E4%BF%A1%E5%BC%80%E5%8F%91%5D%20%E5%BE%AE%E4%BF%A1%E4%BA%91%E5%BC%80%E5%8F%91-%E4%BA%91%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h2 id="云开发是什么"><a href="#云开发是什么" class="headerlink" title="云开发是什么"></a>云开发是什么</h2><p>如果微信小程序是前端，那么后端就是 服务器&#x2F;后端代码运行&#x2F;云存储&#x2F;数据库等，前后端配合才是一个完整的面向服务的程序。</p>
+<p>前后端配置，上述是正常的开发的组合。但是后端涉及到很多繁琐的步骤，比如 域名申请&#x2F;域名解析&#x2F;后端代码部署…一系列的问题。等解决好这些问题，时间都耗费了半天了。</p>
+<p>微信云开发，就是为了解决上述的问题。在 <strong>微信开发者工具</strong> 中就可以一键开发 <strong>数据库&#x2F;云函数&#x2F;云存储</strong>，方便灵活。</p>
+<p>相应的网站说明： <a href="https://developers.weixin.qq.com/miniprogram/dev/wxcloudservice/wxcloud/guide/init.html">云开发 </a>。下面就着 云函数，说明一下。</p>
+<h2 id="云函数-hello-world"><a href="#云函数-hello-world" class="headerlink" title="云函数 hello world"></a>云函数 hello world</h2><ol>
+<li>新建一个 <strong>云环境</strong>，打开 _微信开发者工具_，点击 <em>云开发</em> 按钮。</li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/a3303d65-ae28-4a4a-b024-d00ad6ff4095_ff179b1c-7af2-4c3e-90a7-90529e880779.png"></p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/55118c6e-7dd0-4378-aaad-398c8fa4f6f9_d3cdcadd-4568-4b51-81ad-2d66fe249616.png"></p>
+<p>红色箭头是 <code>envId</code>，后续在代码中用上。暂时先建立一个环境 <code>test</code>。</p>
+<blockquote>
+<p>❓环境是什么？</p>
+<p>就是用来隔离不同 云函数&#x2F;数据库&#x2F;云存储的 空间。可以想象，不同的环境，就等于不同的房子；不同的房子里面虽然都有 桌子椅子，但是他们都是独立的。</p>
+</blockquote>
+<ol start="2">
+<li>新建目录，<code>cloudfunctions</code> ，是云函数的保存目录。在项目根目录找到 <code>project.config.json</code> 文件，新增 <code>cloudfunctionRoot</code> 字段，<code>value</code> 就是 <code>cloudfunctions</code>。</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   <span class="string">&quot;cloudfunctionRoot&quot;</span>: <span class="string">&quot;cloudfunctions/&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 <strong>新建的目录</strong> 上要选择你要在 <code>哪个环境</code> 中进行开发云函数，比如下图，选择了 新建的 <code>test</code> 环境。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/5bed85c0-d45a-4bc6-84b7-4b3601f05b1d_678f3efa-eef6-4d5d-94a6-f9f2acf75f09.png"></p>
+<ol start="3">
+<li>创建云函数，在 <code>cloudfunctions</code> 目录 右键，点击 【新建 node.js 云函数】，名字叫 <code>add</code>。</li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/1e29e888-7ffc-4c8e-ad45-9211e11c3688_6c840fc5-13f7-4e5e-b1c0-257e5525e4c3.png"></p>
+<p>add 目录下 增加多 3 个文件</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/b062fd6a-be83-4b1f-adaa-abc4b1c445aa_55aae544-8c59-4f95-8fee-fa139fc5b325.png"></p>
+<ol start="4">
+<li>修改 <code>add/index.js</code> ，全文替换成下面的代码。</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 云函数入口函数</span></span><br><span class="line"><span class="built_in">exports</span>.<span class="property">main</span> = <span class="title function_">async</span> (event, context) =&gt; &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">sum</span>: event.<span class="property">a</span> + event.<span class="property">b</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="5">
+<li>修改 <code>package.json</code>， 删除 <code>dependencies</code> 里面的值，类似的代码如下</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;dependencies&quot;</span>: &#123;</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="6">
+<li>上传函数，变成 <code>云</code></li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/8677fd70-f4e7-48dc-8151-500ce61fc6c5_2e030105-4f2e-4076-9e42-aa5d749a7d49.png"></p>
+<blockquote>
+<p>如果，有以下的情况</p>
+<ol>
+<li><code>index.js</code> 中 <strong>没有</strong> <code>const cloud = require(&#39;wx-server-sdk&#39;)</code> 代码</li>
+<li><code>package.json</code> 的 <code>dependencies</code> 字段 没有值</li>
+</ol>
+<p>就可以  点击【上传并部署: 所有文件】菜单，比如 本例。</p>
+<p>如果有上述的情况，就可以  点击【上传并部署: 云端安装依赖】菜单。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/beccdf18-d285-4e40-a6f3-1ab02736ce83_c349e39c-ec34-4d3a-9292-92cbc54a50e9.png"></p>
+</blockquote>
+<blockquote>
+<p>💡 ‘wx-server-sdk’ 的安装，是为了 云函数中可以 调用 <strong>数据库</strong> 和 <strong>云存储</strong>。如果你在微信小程序中是直接 调用 数据库 和 云存储，就没有必要在 云函数 中倒一倒了。</p>
+</blockquote>
+<ol start="7">
+<li>调试云函数，在 <strong>开发者工具</strong> 就可以调试刚刚上传的云函数</li>
+</ol>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/1ae346b2-e450-4d10-b42a-c05843452c69_385b46fd-7871-4826-8fb7-348178fcd442.png"></p>
+<ol start="8">
+<li>小程序中调用 云函数 add</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">wx.<span class="property">cloud</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">      <span class="attr">env</span>: <span class="string">&#x27;test-safjlfjasdfasf&#x27;</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">wx.<span class="property">cloud</span>.<span class="title function_">callFunction</span>(&#123;</span><br><span class="line">      <span class="comment">// 云函数名称</span></span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;add&#x27;</span>,</span><br><span class="line">      <span class="comment">// 传给云函数的参数</span></span><br><span class="line">      <span class="attr">data</span>: &#123;</span><br><span class="line">        <span class="attr">a</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="attr">b</span>: <span class="number">2</span>,</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">success</span>: <span class="keyword">function</span>(<span class="params">res</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(res.<span class="property">result</span>.<span class="property">sum</span>) <span class="comment">// 3</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">fail</span>: <span class="variable language_">console</span>.<span class="property">error</span></span><br><span class="line">    &#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="9">
+<li>撒花</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><em>微信云开发</em> 开发 _云函数_，可以在一个工具里面同时开发前端和后端的代码，减少繁琐的步骤，加快开发的效率。</p>
+]]></content>
+      <categories>
+        <category>微信云开发</category>
+      </categories>
+      <tags>
+        <tag>微信</tag>
+        <tag>微信云开发</tag>
+        <tag>云开发</tag>
+        <tag>云函数</tag>
+        <tag>云数据库</tag>
+        <tag>云存储</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Serverless安装第三方package并构建layer</title>
+    <url>/2024/12/09/%5B%E8%82%A5%E7%94%A8%E4%BA%91%E8%AE%A1%E7%AE%97%5D%20Serverless%E5%AE%89%E8%A3%85%E7%AC%AC%E4%B8%89%E6%96%B9package%E5%B9%B6%E6%9E%84%E5%BB%BAlayer/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面介绍的都没有进行额外的 package 安装的过程，所以本章就重点是 如何在 serverless 中安装第三方的 packag 和 如何去构建 layer 使得 package 可以复用。</p>
+<blockquote>
+<p>下面是后续所有例子需求：</p>
+<ol>
+<li>安装 emoji package，且运行</li>
+</ol>
+</blockquote>
+<h2 id="安装方式：package-安装在本地"><a href="#安装方式：package-安装在本地" class="headerlink" title="安装方式：package 安装在本地"></a>安装方式：package 安装在本地</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">s init start-fc3-python -d demo1</span><br><span class="line">cd demo1</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装依赖</span></span><br><span class="line">touch code/requirements.txt</span><br><span class="line">echo &quot;emoji==2.0.0&quot; &gt; code/requirements.txt</span><br><span class="line">pip3 install -r code/requirements.txt -t ./code</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>emoji package 就会安装在 local 的 code 文件夹中</p>
+<p>修改 <code>code/index.py</code></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># @code/index.py</span></span><br><span class="line"><span class="keyword">from</span> emoji <span class="keyword">import</span> emojize</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">handler</span>(<span class="params">event, context</span>):</span><br><span class="line">    <span class="keyword">return</span> emojize(<span class="string">&quot;:thumbs_up:&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>部署代码</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">本地测试</span></span><br><span class="line">s local invoke</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">部署到远端</span></span><br><span class="line">s deploy</span><br></pre></td></tr></table></figure>
+
+
+
+<p>当然部署也是可以上传代码的方式，如下图，其效果是一样的。</p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/7d8a2d84-885d-41b9-9176-1e453fbbf978_0a9076aa-14b3-429c-b353-b8a17a50d60c.png"></p>
+<p><em><strong>结果：</strong></em></p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/bef8d5d1-00c5-41fe-9602-c53a43c0087b_83dd9e42-6950-4625-bc3c-20b18fef455d.png"></p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/d8ef8640-9b24-4ea9-9f98-018a77c1a333_662dc12b-8977-4705-97a5-ec7bcc63533f.png"></p>
+<p>结果满足预期，但是他会把 emoji package 和 index.py 一起上传了。所以从代码大小中得知，整体会比较大。</p>
+<h2 id="安装方式：构建-layer"><a href="#安装方式：构建-layer" class="headerlink" title="安装方式：构建 layer"></a>安装方式：构建 layer</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">s init start-fc3-python -d demo2</span><br><span class="line">cd demo2</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装依赖</span></span><br><span class="line">touch code/requirements.txt</span><br><span class="line">echo &quot;emoji==2.0.0&quot; &gt; code/requirements.txt</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>修改 code&#x2F;index.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># @code/index.py</span></span><br><span class="line"><span class="keyword">from</span> emoji <span class="keyword">import</span> emojize</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">handler</span>(<span class="params">event, context</span>):</span><br><span class="line">    <span class="keyword">return</span> emojize(<span class="string">&quot;:thumbs_up:&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>关键代码来了，<strong>构建 layer，并且上传 layer。</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">s build --publish-layer</span><br><span class="line"></span><br><span class="line">[2024-12-09 18:00:12][INFO][hello_world] You need to add a new configuration env configuration dependency in yaml to take effect. The configuration is as follows:</span><br><span class="line">environmentVariables:</span><br><span class="line">  PYTHONPATH: /opt/python</span><br><span class="line">  </span><br><span class="line">layers:</span><br><span class="line">  - acs:fc:cn-shenzhen:1719759326012690:layers/demo2-layer/versions/1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>构建成功后，提示说在 s.yaml 中添加上 environmentVariables 和 layers 节点。</p>
+<p>💡 构建 layer 的意思就是把 requirements package 都构建一层 image layer 且上传到云端，后续的代码就是基于这层，不用另外的安装代码。如果有其他的项目想复用这些 package，直接改 s.yaml 的 layer 节点就可以了。</p>
+<p>⚠️ 记得要把 requirements.txt 的文件要放在 和 index.py 的同级目录下。</p>
+<p>所以往 s.yaml 里面写入上述的信息。</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">props:</span></span><br><span class="line">      <span class="string">...</span></span><br><span class="line">      <span class="attr">environmentVariables:</span></span><br><span class="line">        <span class="attr">PYTHONPATH:</span> <span class="string">/opt/python</span></span><br><span class="line">      <span class="attr">layers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">acs:fc:cn-shenzhen:1719759326012690:layers/demo2-layer/versions/1</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>部署代码</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">本地测试</span></span><br><span class="line">s local invoke</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">部署到远端</span></span><br><span class="line">s deploy</span><br></pre></td></tr></table></figure>
+
+<p><em>****</em></p>
+<p><em><strong>结果：</strong></em></p>
+<p><img src="https://qiniu.oldzhangtech.com/mdpic/3182e155-8a24-4d6e-80bf-72c8890ebdf5_e3de1325-4c7c-4b4f-8ce5-cc6c9d2bb8a4.png"></p>
+<p>因为不会上传 emoji package，代码明显是小了很多。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>serverless 就是 业务 和 trigger 隔离开来，本文章例子中都是完成 业务，没有 trigger；只要后续补充上 trigger，这个业务就可以串通了。</li>
+<li>部署方式，优先是构建 layer，后上传代码，因为 layer 可以复用，且减少项目的代码。</li>
+<li>如果开发&#x2F;本地测试&#x2F;部署，可以遵循下面的方法：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">初始化</span></span><br><span class="line">s init start-fc3-python -d demo2</span><br><span class="line">cd demo2</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装依赖</span></span><br><span class="line">touch code/requirements.txt</span><br><span class="line">echo &quot;emoji==2.0.0&quot; &gt; code/requirements.txt</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">本地测试</span></span><br><span class="line">s local invoke</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建 layer</span></span><br><span class="line">s build --publish-layer</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">部署</span></span><br><span class="line">s deploy</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="资料"><a href="#资料" class="headerlink" title="资料"></a>资料</h2><ol>
+<li><a href="https://gitee.com/oldmanzhang/practice_serverlsess/tree/master/p03">源代码</a></li>
+<li><a href="https://help.aliyun.com/zh/functioncompute/fc-3-0/user-guide/request-handlers?spm=a2c4g.11186623.4.2.72757bbcKfadgi&scm=20140722.H_2512964._.ID_2512964-OR_rec-V_1">阿里云 serverless 说明</a></li>
+<li><a href="https://manual.serverless-devs.com/user-guide/aliyun/fc3/build/">Serverless Devs Docs</a></li>
+<li><a href="https://github.com/devsapp/start-fc?spm=5176.fcnext.0.0.18e978c8K4qMDn">start-fc-template</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>肥用云计算</category>
+      </categories>
+      <tags>
+        <tag>serverless</tag>
       </tags>
   </entry>
 </search>
